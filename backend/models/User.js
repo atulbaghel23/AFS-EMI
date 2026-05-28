@@ -16,7 +16,9 @@ const userSchema = new mongoose.Schema({
   settings: {
     fontFamily: { type: String, default: 'Inter' },
     fontSize: { type: String, default: '14' } // Numeric string for scaling
-  }
+  },
+  resetOtp: { type: String },
+  resetOtpExpires: { type: Date }
 }, { timestamps: true });
 
 userSchema.pre('save', async function () {

@@ -17,8 +17,11 @@ export const downloadGlobalReport = async (req, res) => {
     }
 
     // Fetch all relevant data
-    const loans = await Loan.find();
-    const payments = await Payment.find();
+    const loans = await Loan.find().populate('customerId');
+    const payments = await Payment.find().populate({
+      path: 'loanId',
+      populate: { path: 'customerId' }
+    });
 
     // Filtering Logic
     const filteredLoans = selectedAssets.includes('ALL MACHINES')

@@ -163,7 +163,7 @@ const Dashboard = () => {
   //   (c.customerName === user?.name)
   // );
 
-  if (isFMC) return <FMCCustomerDashboard />;
+  // if (isFMC) return <FMCCustomerDashboard />;
   const { user, fmcContracts } = state.data;
   const isFMC = user?.type?.toUpperCase() === 'FMC' || fmcContracts.some(c =>
     (c.customerId && user?.customerId && c.customerId.toString() === user.customerId.toString()) ||

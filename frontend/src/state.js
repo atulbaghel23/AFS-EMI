@@ -330,6 +330,48 @@ class State {
     }
   }
 
+  async sendRecoveryOtp(email) {
+    this.setState({ loading: true });
+    try {
+      const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      this.setState({ loading: false });
+      if (res.ok) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (err) {
+      this.setState({ loading: false });
+      return { success: false, message: 'Server connection failed' };
+    }
+  }
+
+  async resetPassword(email, otp, newPassword) {
+    this.setState({ loading: true });
+    try {
+      const res = await fetch(`${BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, password: newPassword })
+      });
+      const data = await res.json();
+      this.setState({ loading: false });
+      if (res.ok) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (err) {
+      this.setState({ loading: false });
+      return { success: false, message: 'Server connection failed' };
+    }
+  }
+
   logout() {
     localStorage.removeItem('emi_user');
     this.setState({
