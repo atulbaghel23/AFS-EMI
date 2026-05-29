@@ -19,6 +19,20 @@ const MachineManagement = () => {
   const isAdmin = user?.role === 'OEM' || user?.role === 'Admin';
   const [localColConfig, setLocalColConfig] = useState({ identity: true, status: true, specs: true, valuation: true, dataSync: true, control: true });
   const [showColConfig, setShowColConfig] = useState(false);
+  const colConfigRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (colConfigRef.current && !colConfigRef.current.contains(event.target)) {
+        setShowColConfig(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
@@ -118,7 +132,7 @@ const MachineManagement = () => {
             </div>
 
             {machineListView === 'list' && (
-              <div className="relative">
+              <div ref={colConfigRef} className="relative">
                 <button
                   onClick={() => setShowColConfig(!showColConfig)}
                   className={`p-3 rounded-xl border transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${showColConfig ? 'bg-[#f0883e]/10 border-[#f0883e]/50 text-[#f0883e]' : 'bg-bg-deep border border-border-main text-text-dim hover:text-text-main'
@@ -136,7 +150,6 @@ const MachineManagement = () => {
                     <div className="grid grid-cols-1 gap-2">
                       {[
                         { id: 'identity', label: 'Asset Identity', icon: <Cpu size={10} /> },
-                        { id: 'status', label: 'Operational Status', icon: <CheckCircle2 size={10} /> },
                         { id: 'specs', label: 'Specifications', icon: <Zap size={10} /> },
                         { id: 'valuation', label: 'Valuation', icon: <DollarSign size={10} /> },
                         { id: 'dataSync', label: 'Data Sync', icon: <RefreshCw size={10} /> },
@@ -203,7 +216,6 @@ const MachineManagement = () => {
               <thead className="sticky top-0 z-[40]">
                 <tr className="bg-bg-card border-b border-border-main shadow-sm">
                   {localColConfig.identity && <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-text-dim bg-bg-card">Asset Identity</th>}
-                  {localColConfig.status && <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-text-dim bg-bg-card">Operational Status</th>}
                   {localColConfig.specs && <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-text-dim bg-bg-card">Specifications</th>}
                   {localColConfig.valuation && <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-text-dim bg-bg-card">Valuation</th>}
                   {localColConfig.dataSync && <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-text-dim bg-bg-card">Data Sync</th>}
@@ -241,16 +253,7 @@ const MachineManagement = () => {
                         </div>
                       </td>
                     )}
-                    {localColConfig.status && (
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${m.status === 'Available' ? 'bg-[#3fb950]/10 text-[#3fb950] border-[#3fb950]/20' :
-                          m.status === 'Assigned' ? 'bg-[#58a6ff]/10 text-[#58a6ff] border-[#58a6ff]/20' :
-                            'bg-[#f85149]/10 text-[#f85149] border-[#f85149]/20'
-                          }`}>
-                          {m.status || 'AVAILABLE'}
-                        </span>
-                      </td>
-                    )}
+
                     {localColConfig.specs && (
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
@@ -494,11 +497,24 @@ const MachineListView = ({ machines, onEdit, onDelete, onView }) => (
 const SearchableDropdown = ({ label, options, selected, onSelect, onAddNew, onDeleteOption, onEditOption, isOptionDeletable }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const filteredOptions = options.filter(o => o.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="relative">
+    <div ref={dropdownRef} className="relative">
       <p className="text-[10px] font-bold text-[#768390] mb-1.5 uppercase tracking-wider">{label}</p>
       <div
         className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-3 text-sm text-white font-bold cursor-pointer flex justify-between items-center"

@@ -4,7 +4,14 @@ const Modal = ({ isOpen, onClose, title, subtitle, children, maxWidth = 'max-w-4
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[500] p-4 animate-in fade-in duration-300">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[500] p-4 animate-in fade-in duration-300"
+    >
       <div className={`bg-[#161b22] shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-3xl w-full ${maxWidth} max-h-[90vh] flex flex-col border border-[#30363d] animate-in zoom-in duration-300 overflow-visible relative`}>
         {/* HEADER */}
         <div className="px-8 py-6 border-b border-[#30363d] flex items-center justify-between bg-[#0d1117]/50">

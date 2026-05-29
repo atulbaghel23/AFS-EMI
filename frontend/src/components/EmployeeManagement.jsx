@@ -24,6 +24,20 @@ const EmployeeManagement = () => {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showColConfig, setShowColConfig] = useState(false);
+  const colConfigRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (colConfigRef.current && !colConfigRef.current.contains(event.target)) {
+        setShowColConfig(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
@@ -172,7 +186,7 @@ const EmployeeManagement = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="relative">
+            <div ref={colConfigRef} className="relative">
               <button
                 onClick={() => setShowColConfig(!showColConfig)}
                 className={`p-3 rounded-xl border transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${showColConfig ? 'bg-[#f0883e]/10 border-[#f0883e]/50 text-[#f0883e]' : 'bg-bg-card border border-border-main text-text-dim hover:text-text-main'

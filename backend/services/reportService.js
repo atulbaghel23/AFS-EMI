@@ -1187,6 +1187,185 @@ export const generateGlobalPPTReport = async (loans, payments, months) => {
     chartColors: [PRIMARY_ORANGE, GREEN_PAID, BLUE_PENDING, RED_OVERDUE, 'd2a8ff', '768390']
   });
 
+  // Calculate model breakdowns for Slides 4b, 4c, 4d
+  const modelPayback = {};
+  loans.forEach(l => {
+    const model = l.model || 'N/A';
+    const tot = l.emi * l.schedule.length;
+    const pd = l.schedule.filter(s => s.status === 'Paid').reduce((sum, s) => sum + s.emi, 0);
+    const exposure = tot - pd;
+    const monthlyEmi = l.emi;
+
+    if (!modelPayback[model]) {
+      modelPayback[model] = { total: 0, paid: 0, exposure: 0, monthlyEmi: 0, count: 0 };
+    }
+    modelPayback[model].total += tot;
+    modelPayback[model].paid += pd;
+    modelPayback[model].exposure += exposure;
+    modelPayback[model].monthlyEmi += monthlyEmi;
+    modelPayback[model].count += 1;
+  });
+
+  // Slide 4b: Model-wise Portfolio Segmentation (Pie Chart + Side-card info)
+  const slide4b = pptx.addSlide();
+  addDecorations(slide4b, 'Model-wise Portfolio Segmentation', 'Machine model allocation and distribution audit');
+  
+  // Left theory card
+  slide4b.addShape(pptx.ShapeType.rect, {
+    x: 0.5,
+    y: 1.1,
+    w: 3.4,
+    h: 4.3,
+    fill: { color: BG_CARD },
+    line: { color: '30363d', width: 1 }
+  });
+
+  const segModelTheoryLines = [
+    { text: 'MODEL DIVERSIFICATION\n', options: { color: PRIMARY_ORANGE, fontSize: 9, bold: true, fontFace: 'Segoe UI' } },
+    { text: 'Analyzing fleet allocation by specific equipment models helps track operational amortization and lifecycle profiles of individual asset models.\n\n', options: { color: TEXT_WHITE, fontSize: 8, fontFace: 'Segoe UI' } },
+    { text: 'MODEL TELEMETRY\n', options: { color: PRIMARY_ORANGE, fontSize: 9, bold: true, fontFace: 'Segoe UI' } },
+    { text: `• Total Fleet Size: ${loans.length} Units active under tracking.\n`, options: { color: TEXT_WHITE, fontSize: 8, fontFace: 'Segoe UI' } }
+  ];
+
+  Object.entries(modelPayback).forEach(([model, data]) => {
+    const rate = data.total > 0 ? Math.round((data.paid / data.total) * 100) : 0;
+    segModelTheoryLines.push({
+      text: `• ${model}: ${data.count} units (payback rate ${rate}%)\n`,
+      options: { color: rate > 80 ? GREEN_PAID : (rate > 50 ? BLUE_PENDING : PRIMARY_ORANGE), fontSize: 7.5, fontFace: 'Segoe UI' }
+    });
+  });
+
+  slide4b.addText(segModelTheoryLines, {
+    x: 0.7,
+    y: 1.2,
+    w: 3.0,
+    h: 4.1,
+    lineSpacing: 11
+  });
+
+  const machineModels = Object.keys(modelPayback);
+  const pieModelData = [{
+    name: 'Model Count',
+    labels: machineModels,
+    values: machineModels.map(model => modelPayback[model].count)
+  }];
+
+  slide4b.addChart(pptx.ChartType.pie, pieModelData, { 
+    x: 4.1, 
+    y: 1.2, 
+    w: 5.4, 
+    h: 4.0, 
+    showPercent: true, 
+    showLegend: true,
+    legendColor: TEXT_WHITE,
+    legendFontSize: 9,
+    chartColors: [PRIMARY_ORANGE, GREEN_PAID, BLUE_PENDING, RED_OVERDUE, 'd2a8ff', '768390']
+  });
+
+  // Slide 4c: Model-wise Exposure & Valuation (Bar Chart + Side-card info)
+  const slide4c = pptx.addSlide();
+  addDecorations(slide4c, 'Model-wise Exposure & Valuation', 'Capital distribution and remaining liability by model');
+  
+  // Left theory card
+  slide4c.addShape(pptx.ShapeType.rect, {
+    x: 0.5,
+    y: 1.1,
+    w: 3.4,
+    h: 4.3,
+    fill: { color: BG_CARD },
+    line: { color: '30363d', width: 1 }
+  });
+
+  const segValTheoryLines = [
+    { text: 'CAPITAL CONCENTRATION\n', options: { color: PRIMARY_ORANGE, fontSize: 9, bold: true, fontFace: 'Segoe UI' } },
+    { text: 'Capital concentration measures the exposure of scheduled lease capital distributed per equipment model category. High exposure highlights critical dependencies.\n\n', options: { color: TEXT_WHITE, fontSize: 8, fontFace: 'Segoe UI' } },
+    { text: 'FINANCIAL AUDIT BY MODEL\n', options: { color: PRIMARY_ORANGE, fontSize: 9, bold: true, fontFace: 'Segoe UI' } }
+  ];
+
+  Object.entries(modelPayback).forEach(([model, data]) => {
+    segValTheoryLines.push({
+      text: `• ${model}: Total ${formatINRVal(data.total)} | Exposure ${formatINRVal(data.exposure)}\n`,
+      options: { color: data.exposure > 500000 ? RED_OVERDUE : TEXT_LIGHT, fontSize: 7.5, fontFace: 'Segoe UI' }
+    });
+  });
+
+  slide4c.addText(segValTheoryLines, {
+    x: 0.7,
+    y: 1.2,
+    w: 3.0,
+    h: 4.1,
+    lineSpacing: 11
+  });
+
+  const barChartData = [
+    {
+      name: 'Total Value',
+      labels: machineModels,
+      values: machineModels.map(k => modelPayback[k].total)
+    },
+    {
+      name: 'Remaining Exposure',
+      labels: machineModels,
+      values: machineModels.map(k => modelPayback[k].exposure)
+    }
+  ];
+
+  slide4c.addChart(pptx.ChartType.bar, barChartData, { 
+    x: 4.1, 
+    y: 1.2, 
+    w: 5.4, 
+    h: 4.0, 
+    barGapWidthPct: 30,
+    chartColors: [PRIMARY_ORANGE, BLUE_PENDING],
+    valAxisLabelColor: TEXT_LIGHT,
+    catAxisLabelColor: TEXT_LIGHT,
+    legendColor: TEXT_WHITE,
+    legendFontSize: 9
+  });
+
+  // Slide 4d: Model-wise Amortization Registry (Table)
+  const slide4d = pptx.addSlide();
+  addDecorations(slide4d, 'Model-wise Amortization Registry', 'Audit statement of model performance');
+
+  const modelHeaders = ['Model Category', 'Units', 'Total Contract Value', 'Recovered Revenue', 'Remaining Exposure', 'Monthly EMI Share', 'Progress'].map(t => ({
+    text: t,
+    options: { bold: true, fill: '1c2128', color: PRIMARY_ORANGE, fontSize: 9 }
+  }));
+
+  const modelTableData = [modelHeaders];
+  Object.entries(modelPayback).forEach(([model, data]) => {
+    const progress = data.total > 0 ? Math.round((data.paid / data.total) * 100) : 0;
+    modelTableData.push([
+      { text: model, options: { color: TEXT_WHITE } },
+      { text: `${data.count} Units`, options: { color: TEXT_LIGHT } },
+      { text: formatINRVal(data.total), options: { color: TEXT_LIGHT } },
+      { text: formatINRVal(data.paid), options: { color: GREEN_PAID, bold: true } },
+      { text: formatINRVal(data.exposure), options: { color: data.exposure > 0 ? RED_OVERDUE : TEXT_LIGHT } },
+      { text: formatINRVal(data.monthlyEmi), options: { color: TEXT_LIGHT } },
+      { text: `${progress}%`, options: { color: progress > 85 ? GREEN_PAID : PRIMARY_ORANGE, bold: true } }
+    ]);
+  });
+
+  slide4d.addTable(modelTableData, {
+    x: 0.5,
+    y: 1.2,
+    w: 9.0,
+    fontSize: 8.5,
+    rowH: 0.35,
+    border: { type: 'solid', color: '30363d', width: 1 },
+    valign: 'middle'
+  });
+
+  slide4d.addText('AUDIT PROTOCOL NOTE: THIS REGISTRY DUSTS DOWN ACTIVE EXPOSURE VALUES SEGMENTED BY HARDWARE DESIGN CLASS (MODEL), ALIGNED WITH CONTRACT TERM PROTOCOLS.', {
+    x: 0.5,
+    y: 5.2,
+    w: 9.0,
+    h: 0.2,
+    fontSize: 7,
+    fontFace: 'Courier New',
+    color: TEXT_MUTED
+  });
+
   // Slide 5: Fleet Portfolio Nodes Inventory (NEW)
   const slide5 = pptx.addSlide();
   addDecorations(slide5, 'Fleet Portfolio Nodes Inventory', 'Comprehensive list of active contracts');
@@ -1200,7 +1379,7 @@ export const generateGlobalPPTReport = async (loans, payments, months) => {
   loans.slice(0, 10).forEach(l => {
     const custName = l.customerId?.company || l.customerId?.name || 'N/A';
     invTableData.push([
-      { text: l.machineName, options: { color: TEXT_WHITE } },
+      { text: l.machineName + (l.model ? ` (${l.model})` : ''), options: { color: TEXT_WHITE } },
       { text: custName, options: { color: TEXT_WHITE } },
       { text: l.serialNumber || 'N/A', options: { color: TEXT_LIGHT, fontFace: 'Courier New' } },
       { text: formatINRVal(l.principal), options: { color: TEXT_LIGHT } },
@@ -1468,425 +1647,6 @@ export const generateGlobalPPTReport = async (loans, payments, months) => {
     fontSize: 7,
     fontFace: 'Courier New',
     color: TEXT_MUTED
-  });
-
-  // Section II Divider: Individual Asset Schedules
-  if (loans.length > 0) {
-    const dividerSlide = pptx.addSlide();
-    dividerSlide.background = { color: BG_DARK };
-    dividerSlide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: '100%', h: 0.1, fill: { color: PRIMARY_ORANGE } });
-    
-    dividerSlide.addText('SECTION II', {
-      x: 0.5,
-      y: 2.2,
-      w: 9.0,
-      h: 0.4,
-      fontSize: 16,
-      bold: true,
-      color: PRIMARY_ORANGE,
-      fontFace: 'Courier New'
-    });
-
-    dividerSlide.addText('INDIVIDUAL ASSET TELEMETRY & AMORTIZATION LEDGERS', {
-      x: 0.5,
-      y: 2.7,
-      w: 9.0,
-      h: 0.8,
-      fontSize: 26,
-      bold: true,
-      color: TEXT_WHITE,
-      fontFace: 'Segoe UI'
-    });
-
-    dividerSlide.addText('Detailed performance audit reports and installment schedules for each active fleet node.', {
-      x: 0.5,
-      y: 3.6,
-      w: 9.0,
-      h: 0.4,
-      fontSize: 11,
-      color: TEXT_MUTED,
-      fontFace: 'Segoe UI'
-    });
-  }
-
-  // Loop through selected assets/loans to generate detailed schedules
-  loans.forEach((loan, loanIdx) => {
-    const customer = loan.customerId || {};
-    const customerName = (customer.company || customer.name || 'N/A').toUpperCase();
-    const invoiceNum = loan.invoiceNumber || `INV-${loan._id.toString().substring(loan._id.toString().length - 6).toUpperCase()}`;
-
-    // 1. Asset Specifications & Customer Profile
-    const assetSlide = pptx.addSlide();
-    addDecorations(assetSlide, `${loan.machineName} - Profile & Fleet Node`, `Detailed node telemetry and customer profile (${loanIdx + 1}/${loans.length})`);
-    
-    // Customer profile box (left)
-    assetSlide.addShape(pptx.ShapeType.rect, {
-      x: 0.5,
-      y: 1.1,
-      w: 4.2,
-      h: 4.3,
-      fill: { color: BG_CARD },
-      line: { color: '30363d', width: 1 }
-    });
-
-    assetSlide.addText('CUSTOMER NODE ACCOUNT', {
-      x: 0.7,
-      y: 1.3,
-      w: 3.8,
-      h: 0.3,
-      fontSize: 11,
-      bold: true,
-      color: PRIMARY_ORANGE,
-      fontFace: 'Segoe UI'
-    });
-
-    const profileLines = [
-      { text: 'COMPANY/NAME\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${customerName}\n\n`, options: { color: TEXT_WHITE, fontSize: 11, bold: true } },
-      { text: 'GST NUMBER\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${customer.gst || 'NOT REGISTERED'}\n\n`, options: { color: TEXT_WHITE, fontSize: 10, fontFace: 'Courier New' } },
-      { text: 'MOBILE / CONTACT\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${customer.mobile || 'N/A'}\n\n`, options: { color: TEXT_WHITE, fontSize: 10 } },
-      { text: 'EMAIL ADDRESS\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${customer.email || 'N/A'}\n\n`, options: { color: TEXT_WHITE, fontSize: 10 } },
-      { text: 'OFFICE LOCATION\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${customer.city || ''}, ${customer.state || ''} ${customer.pin || ''}\n`, options: { color: TEXT_WHITE, fontSize: 10 } }
-    ];
-
-    assetSlide.addText(profileLines, {
-      x: 0.7,
-      y: 1.7,
-      w: 3.8,
-      h: 3.5,
-      fontFace: 'Segoe UI',
-      lineSpacing: 13
-    });
-
-    // Asset details box (right)
-    assetSlide.addShape(pptx.ShapeType.rect, {
-      x: 5.0,
-      y: 1.1,
-      w: 4.5,
-      h: 4.3,
-      fill: { color: BG_CARD },
-      line: { color: '30363d', width: 1 }
-    });
-
-    assetSlide.addText('ASSET CONFIGURATION & TERM', {
-      x: 5.2,
-      y: 1.3,
-      w: 4.1,
-      h: 0.3,
-      fontSize: 11,
-      bold: true,
-      color: PRIMARY_ORANGE,
-      fontFace: 'Segoe UI'
-    });
-
-    const assetLines = [
-      { text: 'MACHINE MODEL / NAME\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${loan.machineName.toUpperCase()} (${loan.model})\n\n`, options: { color: TEXT_WHITE, fontSize: 11, bold: true } },
-      { text: 'AGREEMENT NO\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${loan._id.toString().toUpperCase()}\n\n`, options: { color: TEXT_WHITE, fontSize: 10, fontFace: 'Courier New' } },
-      { text: 'SERIAL NUMBER\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${loan.serialNumber || 'N/A'}\n\n`, options: { color: TEXT_WHITE, fontSize: 10, fontFace: 'Courier New' } },
-      { text: 'INVOICE NUMBER\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${invoiceNum}\n\n`, options: { color: TEXT_WHITE, fontSize: 10, fontFace: 'Courier New' } },
-      { text: 'FINANCIAL CONFIG\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `Principal: ${formatINRVal(loan.principal)} | EMI: ${formatINRVal(loan.emi)} @ ${loan.interestRate}% Interest\n`, options: { color: TEXT_WHITE, fontSize: 10 } }
-    ];
-
-    assetSlide.addText(assetLines, {
-      x: 5.2,
-      y: 1.7,
-      w: 4.1,
-      h: 3.5,
-      fontFace: 'Segoe UI',
-      lineSpacing: 13
-    });
-
-    // 2. Financial Position & Recovery Status
-    const reconSlide = pptx.addSlide();
-    addDecorations(reconSlide, `${loan.machineName} - Amortization Status`, `Asset reconciliation KPIs and recovery chart`);
-
-    const assetTotal = loan.emi * loan.schedule.length;
-    const assetPaid = loan.schedule.filter(s => s.status === 'Paid').reduce((sum, s) => sum + s.emi, 0);
-    const assetPending = assetTotal - assetPaid;
-    const assetProgress = assetTotal > 0 ? Math.round((assetPaid / assetTotal) * 100) : 0;
-    const totalInsts = loan.schedule.length;
-    const paidInsts = loan.schedule.filter(s => s.status === 'Paid').length;
-
-    // KPI row
-    const assetKpis = [
-      { label: 'TOTAL CONTRACT VALUE', value: formatINRVal(assetTotal), x: 0.5, color: TEXT_WHITE },
-      { label: 'RECOVERED REVENUE', value: formatINRVal(assetPaid), x: 2.8, color: GREEN_PAID },
-      { label: 'REMAINING EXPOSURE', value: formatINRVal(assetPending), x: 5.1, color: BLUE_PENDING },
-      { label: 'ASSET PROGRESS', value: `${assetProgress}%`, x: 7.4, color: PRIMARY_ORANGE }
-    ];
-
-    assetKpis.forEach(k => {
-      reconSlide.addShape(pptx.ShapeType.rect, {
-        x: k.x,
-        y: 1.1,
-        w: 2.1,
-        h: 1.1,
-        fill: { color: BG_CARD },
-        line: { color: '30363d', width: 1 }
-      });
-
-      reconSlide.addText(k.label, {
-        x: k.x + 0.1,
-        y: 1.2,
-        w: 1.9,
-        h: 0.25,
-        fontSize: 8,
-        bold: true,
-        color: TEXT_MUTED,
-        fontFace: 'Segoe UI'
-      });
-
-      reconSlide.addText(k.value, {
-        x: k.x + 0.1,
-        y: 1.5,
-        w: 1.9,
-        h: 0.5,
-        fontSize: 16,
-        bold: true,
-        color: k.color,
-        fontFace: 'Segoe UI'
-      });
-    });
-
-    reconSlide.addText('RECOVERY INDEX SUMMARY', {
-      x: 0.5,
-      y: 2.4,
-      w: 4.2,
-      h: 0.3,
-      fontSize: 11,
-      bold: true,
-      color: PRIMARY_ORANGE,
-      fontFace: 'Segoe UI'
-    });
-
-    const reconDetails = [
-      { text: 'repayment health rate\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${assetProgress}% cleared for this asset\n\n`, options: { color: TEXT_WHITE, fontSize: 11, bold: true } },
-      { text: 'installment tracking\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${paidInsts} of ${totalInsts} cycles reconciled\n\n`, options: { color: TEXT_WHITE, fontSize: 11, bold: true } },
-      { text: 'unpaid backlog\n', options: { color: TEXT_MUTED, fontSize: 8, bold: true } },
-      { text: `${formatINRVal(assetPending)} remaining outstanding\n`, options: { color: TEXT_WHITE, fontSize: 11, bold: true } }
-    ];
-
-    reconSlide.addText(reconDetails, {
-      x: 0.5,
-      y: 2.8,
-      w: 4.2,
-      h: 2.4,
-      fontFace: 'Segoe UI',
-      lineSpacing: 12
-    });
-
-    // Individual Doughnut chart
-    reconSlide.addChart(pptx.ChartType.doughnut, [
-      {
-        name: 'Reconciliation',
-        labels: ['RECOVERED', 'REMAINING EXPOSURE'],
-        values: [assetPaid, assetPending]
-      }
-    ], {
-      x: 5.0,
-      y: 2.4,
-      w: 4.5,
-      h: 2.8,
-      showPercent: true,
-      showLegend: true,
-      chartColors: [GREEN_PAID, '30363d'],
-      legendColor: TEXT_WHITE,
-      legendFontSize: 9
-    });
-
-    // 3. Delinquency & Backlog Status for this specific asset
-    const overdueSlide = pptx.addSlide();
-    addDecorations(overdueSlide, `${loan.machineName} - Delinquency Report`, `Accrued penalties and overdue cycles`);
-
-    const overdueCycles = [];
-    let assetOverdueAmt = 0;
-    let assetMaxDelay = 0;
-
-    loan.schedule.forEach(s => {
-      if (s.status === 'Pending' && new Date(s.dueDate) < new Date()) {
-        const delayMs = new Date() - new Date(s.dueDate);
-        const delayDays = Math.floor(delayMs / (1000 * 60 * 60 * 24));
-        const interest = Math.round(s.emi * 0.18 * (delayDays / 365));
-        
-        overdueCycles.push({
-          installment: s.installment,
-          dueDate: s.dueDate,
-          emi: s.emi,
-          delayDays,
-          interest
-        });
-
-        assetOverdueAmt += s.emi;
-        if (delayDays > assetMaxDelay) assetMaxDelay = delayDays;
-      }
-    });
-
-    const assetOverdueInterest = overdueCycles.reduce((sum, item) => sum + item.interest, 0);
-
-    if (overdueCycles.length > 0) {
-      overdueSlide.addShape(pptx.ShapeType.rect, {
-        x: 0.5,
-        y: 1.1,
-        w: 9.0,
-        h: 1.1,
-        fill: { color: '200e14' },
-        line: { color: RED_OVERDUE, width: 1 }
-      });
-
-      overdueSlide.addText('CRITICAL DELINQUENCY WARNING', {
-        x: 0.7,
-        y: 1.2,
-        w: 8.6,
-        h: 0.25,
-        fontSize: 10,
-        bold: true,
-        color: RED_OVERDUE,
-        fontFace: 'Segoe UI'
-      });
-
-      overdueSlide.addText(`Outstanding Backlog: ${formatINRVal(assetOverdueAmt)} across ${overdueCycles.length} cycles. Maximum delay of ${assetMaxDelay} days detected. Accrued Delay Interest: ${formatINRVal(assetOverdueInterest)} (Standard 18% Rate).`, {
-        x: 0.7,
-        y: 1.5,
-        w: 8.6,
-        h: 0.6,
-        fontSize: 11,
-        color: TEXT_WHITE,
-        fontFace: 'Segoe UI'
-      });
-
-      const overdueTableData = [
-        ['Cycle', 'Due Date', 'EMI Amount', 'Delay Days', 'Accrued Penalty (18%)'].map(t => ({
-          text: t,
-          options: { bold: true, fill: '1c2128', color: RED_OVERDUE, fontSize: 9 }
-        }))
-      ];
-
-      overdueCycles.slice(0, 8).forEach(item => {
-        overdueTableData.push([
-          { text: `#${item.installment.toString().padStart(2, '0')}`, options: { color: TEXT_WHITE, fontFace: 'Courier New' } },
-          { text: item.dueDate, options: { color: TEXT_LIGHT, fontFace: 'Courier New' } },
-          { text: formatINRVal(item.emi), options: { color: RED_OVERDUE, bold: true } },
-          { text: `${item.delayDays} Days`, options: { color: RED_OVERDUE } },
-          { text: formatINRVal(item.interest), options: { color: RED_OVERDUE, bold: true } }
-        ]);
-      });
-
-      overdueSlide.addTable(overdueTableData, {
-        x: 0.5,
-        y: 2.4,
-        w: 9.0,
-        fontSize: 8.5,
-        rowH: 0.3,
-        border: { type: 'solid', color: '30363d', width: 1 },
-        valign: 'middle'
-      });
-    } else {
-      overdueSlide.addShape(pptx.ShapeType.rect, {
-        x: 0.5,
-        y: 1.1,
-        w: 9.0,
-        h: 1.2,
-        fill: { color: '0f1d17' },
-        line: { color: GREEN_PAID, width: 1 }
-      });
-
-      overdueSlide.addText('PORTFOLIO STATUS: SECURED', {
-        x: 0.7,
-        y: 1.3,
-        w: 8.6,
-        h: 0.3,
-        fontSize: 12,
-        bold: true,
-        color: GREEN_PAID,
-        fontFace: 'Segoe UI'
-      });
-
-      overdueSlide.addText('All amortization cycles are currently on-schedule. No outstanding overdues or delay penalty interests detected for this asset account.', {
-        x: 0.7,
-        y: 1.7,
-        w: 8.6,
-        h: 0.4,
-        fontSize: 11,
-        color: TEXT_WHITE,
-        fontFace: 'Segoe UI'
-      });
-
-      overdueSlide.addText('✓ EXCELLENT REPAYMENT STANDING', {
-        x: 0.5,
-        y: 2.8,
-        w: 9.0,
-        h: 0.5,
-        fontSize: 18,
-        bold: true,
-        color: GREEN_PAID,
-        fontFace: 'Segoe UI',
-        align: 'center'
-      });
-    }
-
-    // 4. Master Amortization Ledger for this specific loan
-    const rowsPerSlide = 12;
-    const assetSlides = Math.ceil(loan.schedule.length / rowsPerSlide);
-
-    for (let i = 0; i < assetSlides; i++) {
-      const slideTitle = assetSlides > 1 ? `Amortization Ledger (Part ${i + 1}/${assetSlides})` : 'Amortization Ledger';
-      const ledgerSlide = pptx.addSlide();
-      addDecorations(ledgerSlide, `${loan.machineName} - ${slideTitle}`, `Detailed repayment schedule`);
-
-      const ledgerHeaders = ['Inst. #', 'Due Date', 'EMI Amount', 'Principal', 'Interest', 'Remaining Balance', 'Status'].map(t => ({
-        text: t,
-        options: { bold: true, fill: '1c2128', color: PRIMARY_ORANGE, fontSize: 9 }
-      }));
-
-      const ledgerTableData = [ledgerHeaders];
-
-      const startIdx = i * rowsPerSlide;
-      const endIdx = startIdx + rowsPerSlide;
-      const chunk = loan.schedule.slice(startIdx, endIdx);
-
-      chunk.forEach(s => {
-        ledgerTableData.push([
-          { text: `#${s.installment.toString().padStart(2, '0')}`, options: { color: TEXT_WHITE, fontFace: 'Courier New' } },
-          { text: s.dueDate, options: { color: TEXT_LIGHT, fontFace: 'Courier New' } },
-          { text: formatINRVal(loan.emi), options: { color: TEXT_WHITE } },
-          { text: formatINRVal(s.principal), options: { color: TEXT_LIGHT } },
-          { text: formatINRVal(s.interest), options: { color: TEXT_LIGHT } },
-          { text: formatINRVal(s.balance), options: { color: TEXT_WHITE, bold: true } },
-          { text: s.status.toUpperCase(), options: { color: s.status === 'Paid' ? GREEN_PAID : BLUE_PENDING, bold: true } }
-        ]);
-      });
-
-      ledgerSlide.addTable(ledgerTableData, {
-        x: 0.5,
-        y: 1.2,
-        w: 9.0,
-        fontSize: 8.5,
-        rowH: 0.3,
-        border: { type: 'solid', color: '30363d', width: 1 },
-        valign: 'middle'
-      });
-
-      ledgerSlide.addText('SECURED ANALYTICAL TERMINAL NODE // SYSTEM TIME: ' + new Date().toLocaleString(), {
-        x: 0.5,
-        y: 5.2,
-        w: 9.0,
-        h: 0.2,
-        fontSize: 7,
-        fontFace: 'Courier New',
-        color: TEXT_MUTED
-      });
-    }
   });
 
   return await pptx.write('nodebuffer');

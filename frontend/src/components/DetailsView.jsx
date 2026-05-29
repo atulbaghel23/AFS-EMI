@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { state } from '../state';
 import { formatINR, showNotification } from '../utils';
 import Swal from 'sweetalert2';
@@ -97,6 +97,19 @@ const LoanDetails = () => {
   };
 
   const [showReportFormats, setShowReportFormats] = useState(false);
+  const reportRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (reportRef.current && !reportRef.current.contains(event.target)) {
+        setShowReportFormats(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleExecuteReport = async (format) => {
     setShowReportFormats(false);
@@ -242,7 +255,7 @@ const LoanDetails = () => {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative">
+            <div className="relative" ref={reportRef}>
               <button
                 onClick={() => setShowReportFormats(!showReportFormats)}
                 className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold text-[#f0883e] border border-[#f0883e]/30 rounded-lg hover:bg-[#f0883e]/10 transition-all"
@@ -251,21 +264,18 @@ const LoanDetails = () => {
               </button>
 
               {showReportFormats && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowReportFormats(false)} />
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    <p className="px-4 py-2 text-[8px] font-black text-[#444c56] uppercase tracking-widest border-b border-[#30363d]">Select Format</p>
-                    <button onClick={() => handleExecuteReport('excel')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-[#adbac7] hover:bg-[#30363d] hover:text-[#3fb950] transition-colors border-b border-[#30363d]/50">
-                      <FileText size={14} className="text-[#3fb950]" /> EXCEL SPREADSHEET (.xlsx)
-                    </button>
-                    <button onClick={() => handleExecuteReport('ppt')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-[#adbac7] hover:bg-[#30363d] hover:text-rose-500 transition-colors border-b border-[#30363d]/50">
-                      <Maximize2 size={14} className="text-rose-500" /> POWERPOINT PRESENTATION (.pptx)
-                    </button>
-                    <button onClick={() => handleExecuteReport('pdf')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-[#adbac7] hover:bg-[#30363d] hover:text-[#f0883e] transition-colors">
-                      <ShieldCheck size={14} className="text-[#f0883e]" /> PDF REPORT (.pdf)
-                    </button>
-                  </div>
-                </>
+                <div className="absolute top-full right-0 mt-2 w-48 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <p className="px-4 py-2 text-[8px] font-black text-[#444c56] uppercase tracking-widest border-b border-[#30363d]">Select Format</p>
+                  <button onClick={() => handleExecuteReport('excel')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-[#adbac7] hover:bg-[#30363d] hover:text-[#3fb950] transition-colors border-b border-[#30363d]/50">
+                    <FileText size={14} className="text-[#3fb950]" /> EXCEL SPREADSHEET (.xlsx)
+                  </button>
+                  <button onClick={() => handleExecuteReport('ppt')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-[#adbac7] hover:bg-[#30363d] hover:text-rose-500 transition-colors border-b border-[#30363d]/50">
+                    <Maximize2 size={14} className="text-rose-500" /> POWERPOINT PRESENTATION (.pptx)
+                  </button>
+                  <button onClick={() => handleExecuteReport('pdf')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-[#adbac7] hover:bg-[#30363d] hover:text-[#f0883e] transition-colors">
+                    <ShieldCheck size={14} className="text-[#f0883e]" /> PDF REPORT (.pdf)
+                  </button>
+                </div>
               )}
             </div>
             {nextInstallment && (

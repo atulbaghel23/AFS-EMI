@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { state } from '../state';
 import {
   Plus, Trash2, Edit3, Save, ArrowUp, ArrowDown,
@@ -39,6 +39,24 @@ const ApprovalFlowSettings = () => {
   // Searchable Approver Staff Dropdown State
   const [activeApproverDropdownIndex, setActiveApproverDropdownIndex] = useState(null);
   const [approverSearchTerm, setApproverSearchTerm] = useState('');
+
+  const supervisorRef = useRef(null);
+  const approverContainerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (supervisorRef.current && !supervisorRef.current.contains(event.target)) {
+        setSupDropdownOpen(false);
+      }
+      if (approverContainerRef.current && !approverContainerRef.current.contains(event.target)) {
+        setActiveApproverDropdownIndex(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribe = state.subscribe(data => {
@@ -722,7 +740,7 @@ const ApprovalFlowSettings = () => {
               </div>
 
               {/* Scope / Supervisor Assignment with Search */}
-              <div className="space-y-1.5 relative">
+              <div className="space-y-1.5 relative" ref={supervisorRef}>
                 <label className="text-[10px] font-black text-text-dim uppercase tracking-wider">Scope (Supervisor Context)</label>
                 <div className="relative">
                   {/* Selected Item / Search Input Display */}
@@ -813,7 +831,7 @@ const ApprovalFlowSettings = () => {
               </div>
 
               {/* Steps Area */}
-              <div className="space-y-3">
+              <div className="space-y-3" ref={approverContainerRef}>
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-black text-text-dim uppercase tracking-wider pl-1">Approval Steps Chain</label>
                   <button

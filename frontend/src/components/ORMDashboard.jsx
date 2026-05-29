@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { state } from '../state';
 import { formatINR, showNotification } from '../utils';
 import ExcelJS from 'exceljs';
@@ -16,6 +16,19 @@ import {
 const AssetFilter = ({ options, selected, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const filterRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const filteredOptions = options.filter(opt =>
     opt.toLowerCase().includes(searchTerm.toLowerCase())
@@ -44,7 +57,7 @@ const AssetFilter = ({ options, selected, onSelect }) => {
   const isSelected = (opt) => selected.includes(opt);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={filterRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 bg-bg-active border border-border-main rounded-md text-[11px] font-bold text-text-main hover:border-text-dim transition-all"
@@ -196,6 +209,19 @@ const ORMDashboard = () => {
   });
 
   const [showGlobalReportFormats, setShowGlobalReportFormats] = useState(false);
+  const reportRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (reportRef.current && !reportRef.current.contains(event.target)) {
+        setShowGlobalReportFormats(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleExecuteGlobalReport = async (format) => {
     setShowGlobalReportFormats(false);
@@ -276,7 +302,7 @@ const ORMDashboard = () => {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <div className="relative" ref={reportRef}>
             <button
               onClick={() => setShowGlobalReportFormats(!showGlobalReportFormats)}
               className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-lg text-[10px] font-black text-primary hover:bg-primary/20 transition-all uppercase tracking-widest flex items-center gap-2 shadow-sm"
@@ -285,21 +311,18 @@ const ORMDashboard = () => {
             </button>
 
             {showGlobalReportFormats && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowGlobalReportFormats(false)} />
-                <div className="absolute top-full right-0 mt-2 w-56 bg-bg-card border border-border-main rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                  <p className="px-4 py-2 text-[8px] font-black text-text-dim uppercase tracking-widest border-b border-border-main">Select Report Protocol</p>
-                  <button onClick={() => handleExecuteGlobalReport('excel')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-main hover:bg-bg-active hover:text-green-500 transition-colors border-b border-border-main/50">
-                    <FileText size={14} className="text-green-500" /> MASTER EXCEL (.xlsx)
-                  </button>
-                  <button onClick={() => handleExecuteGlobalReport('ppt')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-main hover:bg-bg-active hover:text-rose-500 transition-colors border-b border-border-main/50">
-                    <Maximize2 size={14} className="text-rose-500" /> VISUAL PPT DECK (.pptx)
-                  </button>
-                  <button onClick={() => handleExecuteGlobalReport('pdf')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-main hover:bg-bg-active hover:text-primary transition-colors">
-                    <ShieldCheck size={14} className="text-primary" /> ANALYTICS PDF (.pdf)
-                  </button>
-                </div>
-              </>
+              <div className="absolute top-full right-0 mt-2 w-56 bg-bg-card border border-border-main rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <p className="px-4 py-2 text-[8px] font-black text-text-dim uppercase tracking-widest border-b border-border-main">Select Report Protocol</p>
+                <button onClick={() => handleExecuteGlobalReport('excel')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-main hover:bg-bg-active hover:text-green-500 transition-colors border-b border-border-main/50">
+                  <FileText size={14} className="text-green-500" /> MASTER EXCEL (.xlsx)
+                </button>
+                <button onClick={() => handleExecuteGlobalReport('ppt')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-main hover:bg-bg-active hover:text-rose-500 transition-colors border-b border-border-main/50">
+                  <Maximize2 size={14} className="text-rose-500" /> VISUAL PPT DECK (.pptx)
+                </button>
+                <button onClick={() => handleExecuteGlobalReport('pdf')} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-main hover:bg-bg-active hover:text-primary transition-colors">
+                  <ShieldCheck size={14} className="text-primary" /> ANALYTICS PDF (.pdf)
+                </button>
+              </div>
             )}
           </div>
           <DateFilter range={dateRange} onChange={setDateRange} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { state } from '../state';
 import { showNotification, calculateFinanceNorms, formatINR, hasPermission } from '../utils';
 import { 
@@ -542,13 +542,26 @@ const StatCard = ({ label, value, icon: Icon, accent = false }) => (
 const SearchableDropdown = ({ label, options, selected, onSelect, placeholder = "Select..." }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const filteredOptions = options.filter(opt => 
     (opt || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="relative w-full">
+    <div ref={dropdownRef} className="relative w-full">
       <p className="text-[10px] font-bold text-text-dim mb-1.5 uppercase tracking-wider">{label}</p>
       <button 
         onClick={() => setIsOpen(!isOpen)}

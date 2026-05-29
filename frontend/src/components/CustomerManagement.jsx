@@ -16,13 +16,26 @@ import Captcha from './Captcha';
 const SearchableDropdown = ({ label, options, selected, onSelect, className = "" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const filteredOptions = (options || []).filter(opt =>
     opt.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className={`relative w-full ${className}`}>
+    <div ref={dropdownRef} className={`relative w-full ${className}`}>
       <p className="text-[10px] font-bold text-[#768390] mb-1.5 uppercase tracking-wider">{label}</p>
       <button
         type="button"
@@ -82,6 +95,24 @@ const CustomerManagement = () => {
   const [search, setSearch] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showColConfig, setShowColConfig] = useState(false);
+  const colConfigRef = useRef(null);
+  const filtersRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (colConfigRef.current && !colConfigRef.current.contains(event.target)) {
+        setShowColConfig(false);
+      }
+      if (filtersRef.current && !filtersRef.current.contains(event.target)) {
+        setShowAdvancedFilters(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [filters, setFilters] = useState({
@@ -193,7 +224,7 @@ const CustomerManagement = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="relative">
+            <div ref={colConfigRef} className="relative">
               <button
                 onClick={() => setShowColConfig(!showColConfig)}
                 className={`p-3 rounded-xl border transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${showColConfig ? 'bg-[#f0883e]/10 border-[#f0883e]/50 text-[#f0883e]' : 'bg-bg-deep border border-border-main text-text-dim hover:text-text-main'
@@ -286,7 +317,7 @@ const CustomerManagement = () => {
               />
             </div>
 
-            <div className="relative">
+            <div ref={filtersRef} className="relative">
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 className={`px-4 py-3 rounded-xl border transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${showAdvancedFilters || filters.status !== 'All' || filters.city !== 'All'

@@ -44,13 +44,26 @@ import { saveAs } from 'file-saver';
 const AssetFilter = ({ options, selected, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const filterRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const filteredOptions = (options || []).filter(opt =>
     opt.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="relative">
+    <div className="relative" ref={filterRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 bg-[#1c2128] border border-[#30363d] rounded-md text-[11px] font-bold text-white hover:border-[#768390] transition-all"
