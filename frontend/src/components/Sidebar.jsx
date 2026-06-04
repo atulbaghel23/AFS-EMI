@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { state } from '../state';
 
 import {
@@ -12,13 +12,15 @@ import {
   Activity as ActivityIcon,
   Wrench,
   LayoutGrid,
-  Layers
+  Layers,
+  ChevronDown
 } from 'lucide-react';
 
 import { hasPermission } from '../utils';
 
 const Sidebar = () => {
   const { view, user, fmcContracts = [] } = state.data;
+  const [collapsedMenus, setCollapsedMenus] = useState({});
 
   // OEM MENU
   const oemItems = [
@@ -269,6 +271,8 @@ const Sidebar = () => {
               view === item.id ||
               item.subItems?.some((si) => si.id === view);
 
+            const isExpanded = isActive && !collapsedMenus[item.id];
+
             return (
               <div key={item.id} className="relative">
 
@@ -276,9 +280,14 @@ const Sidebar = () => {
                 <button
                   onClick={() => {
                     if (item.subItems) {
-                      state.setState({
-                        view: item.subItems[0].id
-                      });
+                      if (isActive) {
+                        setCollapsedMenus(prev => ({ ...prev, [item.id]: !prev[item.id] }));
+                      } else {
+                        setCollapsedMenus(prev => ({ ...prev, [item.id]: false }));
+                        state.setState({
+                          view: item.subItems[0].id
+                        });
+                      }
                     } else {
                       state.setState({
                         view: item.id
@@ -303,13 +312,21 @@ const Sidebar = () => {
                     {item.label}
                   </span>
 
-                  {isActive && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#f0883e] shadow-[0_0_8px_#f0883e]" />
-                  )}
+                  <div className="ml-auto flex items-center gap-2">
+                    {item.subItems && (
+                      <ChevronDown 
+                        size={14} 
+                        className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#f0883e]' : 'text-[#768390]'}`} 
+                      />
+                    )}
+                    {isActive && !item.subItems && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#f0883e] shadow-[0_0_8px_#f0883e]" />
+                    )}
+                  </div>
                 </button>
 
                 {/* Sub Menu */}
-                {item.subItems && isActive && (
+                {item.subItems && isExpanded && (
                   <div className="mt-1 ml-4 pl-4 border-l border-[#30363d] space-y-1 py-1">
 
                     {item.subItems.map((sub) => (

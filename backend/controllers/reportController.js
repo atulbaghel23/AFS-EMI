@@ -23,10 +23,13 @@ export const downloadGlobalReport = async (req, res) => {
       populate: { path: 'customerId' }
     });
 
+    const approvedLoans = loans.filter(l => ['Approved', 'Active'].includes(l.approvalStatus));
+    const getLoanLabel = (l) => `${l.machineName} (${l.invoiceNumber || l._id.toString().substring(l._id.toString().length - 4)})`;
+
     // Filtering Logic
     const filteredLoans = selectedAssets.includes('ALL MACHINES')
-      ? loans
-      : loans.filter(l => selectedAssets.includes(l.machineName));
+      ? approvedLoans
+      : approvedLoans.filter(l => selectedAssets.includes(getLoanLabel(l)));
 
     const filteredPayments = payments.filter(p => {
       const paymentDate = new Date(p.date);
@@ -34,8 +37,8 @@ export const downloadGlobalReport = async (req, res) => {
 
       if (selectedAssets.includes('ALL MACHINES')) return inDateRange;
 
-      const associatedLoan = loans.find(l => l._id.toString() === (p.loanId?._id || p.loanId)?.toString());
-      return inDateRange && associatedLoan && selectedAssets.includes(associatedLoan.machineName);
+      const associatedLoan = approvedLoans.find(l => l._id.toString() === (p.loanId?._id || p.loanId)?.toString());
+      return inDateRange && associatedLoan && selectedAssets.includes(getLoanLabel(associatedLoan));
     });
     // Generate Month Objects for calculation
     const start = new Date(dateRange.start);

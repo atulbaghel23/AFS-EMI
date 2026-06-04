@@ -265,20 +265,36 @@ export const generateAgreementPDF = async (loan) => {
             <div class="value">${formatINR(loan.principal)}</div>
           </div>
           <div>
-            <div class="label">Tenure (Months)</div>
-            <div class="value">${loan.tenure}</div>
+            <div class="label">Down Payment</div>
+            <div class="value">${formatINR(loan.downPayment || 0)}</div>
+          </div>
+          <div>
+            <div class="label">Total Discount</div>
+            <div class="value">${loan.discountPercentage || 0}% (${formatINR(loan.discountAmount || 0)})</div>
+          </div>
+          <div>
+            <div class="label">Additional Charges</div>
+            <div class="value">${formatINR((loan.manualCharges || []).reduce((sum, c) => sum + c.amount, 0))}</div>
           </div>
           <div>
             <div class="label">Monthly EMI</div>
             <div class="value">${formatINR(loan.emi)}</div>
           </div>
           <div>
+            <div class="label">Tenure (Months)</div>
+            <div class="value">${loan.tenure}</div>
+          </div>
+          <div>
             <div class="label">Interest Rate</div>
-            <div class="value">${loan.interestRate}%</div>
+            <div class="value">${loan.interestRate || 0}% p.a.</div>
+          </div>
+          <div>
+            <div class="label">Overdue Penalty</div>
+            <div class="value">${loan.delayInterest !== undefined ? loan.delayInterest : 2}% / month</div>
           </div>
           <div>
             <div class="label">EMI Start Date</div>
-            <div class="value">${loan.emiStartDate || 'TBD'}</div>
+            <div class="value">${loan.emiStartDate ? new Date(loan.emiStartDate).toLocaleDateString('en-GB') : 'TBD'}</div>
           </div>
           <div>
             <div class="label">Estimated End Date</div>

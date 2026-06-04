@@ -469,7 +469,7 @@ const NewAssignment = ({ machines, customers, user }) => {
                 label="Client"
                 selected={customers.find(c => c._id === formData.customerId)?.name || "Select Client..."}
                 onSelect={(val) => setFormData({ ...formData, customerId: customers.find(c => c.name === val)?._id })}
-                options={customers.map(c => c.name)}
+                options={customers.filter(c => c.type === 'EMI').map(c => c.name)}
               />
               <SearchableDropdown
                 label="Equipment Model"

@@ -184,29 +184,44 @@ const DateFilter = ({ range, onChange }) => (
 const ORMDashboard = () => {
   const { loans = [], payments = [] } = state.data;
   const [selectedAssets, setSelectedAssets] = usePersistentState('orm_selected_assets', ['ALL MACHINES']);
-  const [dateRange, setDateRange] = usePersistentState('orm_date_range', {
+  const [storedDateRange, setDateRange] = usePersistentState('orm_date_range', {
     start: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
   });
 
+  // Ensure end date always reaches today so we don't exclude new payments if localStorage is stale
+  const todayStr = new Date().toISOString().split('T')[0];
+  const dateRange = {
+    start: storedDateRange.start,
+    end: storedDateRange.end < todayStr ? todayStr : storedDateRange.end
+  };
+
   const getLoanLabel = (l) => `${l.machineName} (${l.invoiceNumber || l._id.toString().substring(l._id.toString().length - 4)})`;
 
-  const machineOptions = ['ALL MACHINES', ...loans.map(getLoanLabel)];
+  const approvedLoans = loans.filter(l => ['Approved', 'Active'].includes(l.approvalStatus));
+  const machineOptions = ['ALL MACHINES', ...approvedLoans.map(getLoanLabel)];
 
   // Filtered Loans based on individual fleet selection
   const filteredLoans = selectedAssets.includes('ALL MACHINES')
-    ? loans
-    : loans.filter(l => selectedAssets.includes(getLoanLabel(l)));
+    ? approvedLoans
+    : approvedLoans.filter(l => selectedAssets.includes(getLoanLabel(l)));
 
   // Filtered Payments based on individual fleet selection AND date range
   const filteredPayments = payments.filter(p => {
-    const paymentDate = new Date(p.date);
-    const inDateRange = paymentDate >= new Date(dateRange.start) && paymentDate <= new Date(dateRange.end);
+    let pDateStr = '';
+    try {
+      pDateStr = new Date(p.date).toISOString().split('T')[0];
+    } catch(e) {
+      // Fallback if date is somehow invalid
+      pDateStr = new Date().toISOString().split('T')[0]; 
+    }
+    const inDateRange = pDateStr >= dateRange.start && pDateStr <= dateRange.end;
 
     if (selectedAssets.includes('ALL MACHINES')) return inDateRange;
 
     // Find the loan associated with this payment to check its label
-    const associatedLoan = loans.find(l => l._id === p.loanId);
+    const loanIdStr = (p.loanId?._id || p.loanId)?.toString();
+    const associatedLoan = approvedLoans.find(l => l._id === loanIdStr);
     return inDateRange && associatedLoan && selectedAssets.includes(getLoanLabel(associatedLoan));
   });
 

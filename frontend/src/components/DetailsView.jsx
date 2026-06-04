@@ -88,7 +88,7 @@ const LoanDetails = () => {
         loanId: loan._id,
         amount: loan.emi * count,
         count: count,
-        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        date: new Date().toISOString(),
         method: 'Digital Settlement',
         transactionId: `TXN${Math.floor(100000 + Math.random() * 899999)}`
       });

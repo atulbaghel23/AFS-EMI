@@ -395,8 +395,9 @@ const MachineManagement = () => {
   }, [images.length]);
 
   return (
-    <div className="group bg-bg-card border border-border-main rounded-xl overflow-hidden flex flex-col h-full hover:border-[#f0883e]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/5">
-      <div className="relative h-40 overflow-hidden bg-black cursor-pointer" onClick={onView}>
+    <div className="group bg-bg-card border border-border-main rounded-xl flex flex-col h-full hover:border-[#f0883e]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/5 relative">
+
+      <div className="relative h-40 rounded-t-xl overflow-hidden bg-black cursor-pointer" onClick={onView}>
         <div className="w-full h-full relative">
           {images.map((img, i) => (
             <img
@@ -422,12 +423,12 @@ const MachineManagement = () => {
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-start mb-1">
-            <h3 className="text-sm font-black text-text-main truncate group-hover:text-[#f0883e] transition-colors">{machine.name || 'Undefined Asset'}</h3>
-            <span className="text-[10px] font-mono font-bold text-[#f0883e] italic">₹{((machine.pricing?.totalPrice || 0) / 100000).toFixed(1)}L</span>
+            <h3 className="text-sm font-black text-text-main truncate group-hover:text-[#f0883e] transition-colors relative z-10">{machine.name || 'Undefined Asset'}</h3>
+            <span className="text-[10px] font-mono font-bold text-[#f0883e] italic relative z-10">₹{((machine.pricing?.totalPrice || 0) / 100000).toFixed(1)}L</span>
           </div>
-          <p className="text-[10px] text-text-dim font-bold uppercase tracking-[0.1em]">{machine.model || 'N/A MODEL'}</p>
+          <p className="text-[10px] text-text-dim font-bold uppercase tracking-[0.1em] relative z-10">{machine.model || 'N/A MODEL'}</p>
           {machine.serialNumber && (
-            <div className="mt-2 py-1 px-2 bg-bg-deep border border-border-main rounded-md inline-block">
+            <div className="mt-2 py-1 px-2 bg-bg-deep border border-border-main rounded-md inline-block relative z-10">
               <p className="text-[8px] font-mono font-bold text-text-dim uppercase tracking-tighter">
                 S/N: <span className="text-text-main/60 group-hover:text-[#f0883e] transition-colors">{machine.serialNumber}</span>
               </p>
@@ -435,7 +436,7 @@ const MachineManagement = () => {
           )}
         </div>
 
-        <div className="mt-4 pt-4 border-t border-border-main flex items-center justify-between">
+        <div className="mt-4 pt-4 border-t border-border-main flex items-center justify-between relative z-10">
           <div className="flex gap-3 text-text-dim">
             <div className="flex items-center gap-1">
               <Zap size={10} className="text-[#f0883e]" />
