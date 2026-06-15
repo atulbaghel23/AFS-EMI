@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "server": "nodemon backend/server.js",
-    "build": "cd frontend && npm run build",
+    "build": "vercel build",
     "postinstall": "cd frontend && npm install",
     "start": "cross-env NODE_ENV=production node backend/server.js",
     "client": "npm --prefix frontend run dev",
