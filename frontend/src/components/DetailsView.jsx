@@ -81,13 +81,13 @@ const LoanDetails = () => {
       if (calc > dynamicDelayInt) dynamicDelayInt = calc;
     }
 
-    return { 
-      ...s, 
+    return {
+      ...s,
       status,
       paidAmount,
       outstandingAmount: currentOutstanding,
-      _overdueAmt: overdueAmt, 
-      _dynamicDelayInt: dynamicDelayInt 
+      _overdueAmt: overdueAmt,
+      _dynamicDelayInt: dynamicDelayInt
     };
   });
 
@@ -279,7 +279,7 @@ const LoanDetails = () => {
     showNotification(`Generating ${format.toUpperCase()} Report...`, 'info');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/loans/${loan._id}/report/${format}`, {
+      const response = await fetch(`https://afs-emi.vercel.app/api/loans/${loan._id}/report/${format}`, {
         headers: {
           'Authorization': `Bearer ${state.data.user?.token}`
         }
@@ -312,7 +312,7 @@ const LoanDetails = () => {
     showNotification(`Downloading PDF receipt for Installment #${instNum}...`, 'info');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/loans/${loan._id}/receipt/${instNum}`, {
+      const response = await fetch(`https://afs-emi.vercel.app/api/loans/${loan._id}/receipt/${instNum}`, {
         headers: {
           'Authorization': `Bearer ${state.data.user?.token}`
         }

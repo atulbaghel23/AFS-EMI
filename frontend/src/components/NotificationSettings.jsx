@@ -34,7 +34,7 @@ const NotificationSettings = () => {
 
   const fetchTemplates = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/notifications/templates');
+      const res = await fetch('https://afs-emi.vercel.app/api/notifications/templates');
       const data = await res.json();
       setTemplates(data);
       if (data.length > 0 && !selectedTemplate) setSelectedTemplate(data[0]);
@@ -45,7 +45,7 @@ const NotificationSettings = () => {
 
   const fetchLogs = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/notifications/logs');
+      const res = await fetch('https://afs-emi.vercel.app/api/notifications/logs');
       const data = await res.json();
       setLogs(data);
     } catch (err) {
@@ -73,7 +73,7 @@ const NotificationSettings = () => {
 
     setIsSaving(true);
     try {
-      const res = await fetch('http://localhost:5000/api/notifications/test-mail', {
+      const res = await fetch('https://afs-emi.vercel.app/api/notifications/test-mail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(localSmtp)
@@ -107,7 +107,7 @@ const NotificationSettings = () => {
     if (!selectedTemplate) return;
     setIsSaving(true);
     try {
-      const res = await fetch('http://localhost:5000/api/notifications/templates', {
+      const res = await fetch('https://afs-emi.vercel.app/api/notifications/templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(selectedTemplate)
@@ -576,8 +576,8 @@ const NotificationSettings = () => {
                       <td className="px-6 py-4 text-[10px] font-bold text-slate-400">{log.recipient}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest ${log.status === 'Sent' ? 'bg-[#3fb950]/10 text-[#3fb950]' :
-                            log.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' :
-                              'bg-red-500/10 text-red-500'
+                          log.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' :
+                            'bg-red-500/10 text-red-500'
                           }`}>
                           {log.status}
                         </span>

@@ -245,7 +245,7 @@ const ORMDashboard = () => {
     showNotification(`Strategic Protocol: Initiating Global ${format.toUpperCase()} Synthesis...`, 'info');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/reports/global/${format}`, {
+      const response = await fetch(`https://afs-emi.vercel.app/api/reports/global/${format}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,6 @@
 // src/state.js
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'https://afs-emi.vercel.app/api';
 import { lightenDarkenColor } from './utils';
 
 const INITIAL_STATE = {
@@ -286,7 +286,7 @@ class State {
       localStorage.setItem('emi_theme', this.data.theme);
       this.applyTheme();
     }
-    
+
     // Persist UI states
     const persistKeys = ['view', 'loanListView', 'machineListView', 'selectedCustomerId', 'selectedLoanId'];
     const shouldPersist = persistKeys.some(k => newData[k] !== undefined);
@@ -297,7 +297,7 @@ class State {
       });
       localStorage.setItem('app_filters', JSON.stringify(filters));
     }
-    
+
     this.notify();
   }
 
@@ -594,7 +594,7 @@ class State {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Approval failed');
-      
+
       const list = this.data.loans.map(l => l._id === data._id ? data : l);
       this.setState({ loans: list });
       return { success: true, data };

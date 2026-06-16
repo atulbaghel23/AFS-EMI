@@ -10,13 +10,13 @@ async function run() {
     warranty: {},
     specs: { fuelType: 'Diesel' }
   };
-  
-  const res = await fetch('http://localhost:5000/api/machines', {
+
+  const res = await fetch('https://afs-emi.vercel.app/api/machines', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(machine)
   });
-  
+
   const data = await res.json();
   console.log(JSON.stringify(data, null, 2));
 }

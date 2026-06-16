@@ -57,7 +57,7 @@ const InvoiceSearch = () => {
 
           // Store data locally
           try {
-            await fetch('http://localhost:5000/api/dispatch', {
+            await fetch('https://afs-emi.vercel.app/api/dispatch', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

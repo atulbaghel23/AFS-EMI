@@ -128,19 +128,19 @@ const PaymentTracker = () => {
     if (!file) return;
     setBulkFile(file);
     setBulkStatus('validating');
-    
+
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:5000/api/payments/bulk-upload/validate', {
+      const res = await fetch('https://afs-emi.vercel.app/api/payments/bulk-upload/validate', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${user?.token}` },
         body: formData
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Validation failed');
-      
+
       setBulkValidation(data);
       setBulkStatus('validated');
     } catch (err) {
@@ -158,7 +158,7 @@ const PaymentTracker = () => {
     formData.append('file', bulkFile);
 
     try {
-      const res = await fetch('http://localhost:5000/api/payments/bulk-upload/import', {
+      const res = await fetch('https://afs-emi.vercel.app/api/payments/bulk-upload/import', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${user?.token}` },
         body: formData
@@ -179,7 +179,7 @@ const PaymentTracker = () => {
 
   const handleDownloadError = () => {
     if (!bulkLogId) return;
-    window.location.href = `http://localhost:5000/api/payments/bulk-upload/errors/${bulkLogId}?token=${user?.token}`;
+    window.location.href = `https://afs-emi.vercel.app/api/payments/bulk-upload/errors/${bulkLogId}?token=${user?.token}`;
   };
 
   const resetBulkModal = () => {
@@ -534,7 +534,7 @@ const PaymentTracker = () => {
                     <Check size={24} className="text-green-500" />
                   </div>
                   <h3 className="text-xl font-black text-white uppercase">Upload Completed</h3>
-                  
+
                   {bulkValidation?.errorRows?.length > 0 && (
                     <div className="max-w-md mx-auto p-4 bg-bg-deep border border-border-main rounded-xl text-left">
                       <p className="text-[10px] font-bold text-text-dim uppercase tracking-widest mb-3">Download Audit Log for the Failed Rows</p>
@@ -543,7 +543,7 @@ const PaymentTracker = () => {
                       </button>
                     </div>
                   )}
-                  
+
                   <button onClick={resetBulkModal} className="px-6 py-2 bg-bg-active text-white border border-border-main text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#30363d] transition-all mt-4">
                     Close Terminal
                   </button>
@@ -570,7 +570,7 @@ const PaymentTracker = () => {
                 ✕
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto max-h-[70vh]">
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-bg-deep p-4 rounded-xl border border-border-main">
@@ -594,7 +594,7 @@ const PaymentTracker = () => {
               <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div> Total Payment Breakdown
               </h3>
-              
+
               <div className="bg-bg-deep rounded-xl border border-border-main overflow-hidden">
                 <table className="w-full text-left">
                   <thead className="bg-bg-active border-b border-border-main">
@@ -634,7 +634,7 @@ const PaymentTracker = () => {
                 </table>
               </div>
             </div>
-            
+
             <div className="p-4 border-t border-border-main bg-bg-deep text-right">
               <button
                 onClick={() => setSelectedPayment(null)}

@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: './backend/.env' });
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'https://afs-emi.vercel.app/api';
 
 async function run() {
   // Login as admin to get token
@@ -15,7 +15,7 @@ async function run() {
       role: 'OEM'
     })
   });
-  
+
   const loginData = await loginRes.json();
   const token = loginData.token;
   console.log('Logged in. Token:', token ? 'OK' : 'FAIL');
