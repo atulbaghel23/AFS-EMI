@@ -541,7 +541,7 @@ const NewAssignment = ({ machines, customers, user }) => {
                 <p className="text-[10px] font-bold text-text-dim mb-1.5 uppercase tracking-wider">Asset Base Price (₹)</p>
                 <input
                   type="number"
-                  disabled
+                  disabled={!isMachineSelected}
                   value={formData.machinePrice}
                   onChange={e => {
                     const price = parseFloat(e.target.value) || 0;
