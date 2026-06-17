@@ -1,6 +1,7 @@
 // src/state.js
 
-const BASE_URL = 'https://afs-emi.vercel.app/api';
+const BASE_URL = 'https://afs-emi.onrender.com/api';
+// const BASE_URL = 'https://afs-emi.vercel.app/api';
 import { lightenDarkenColor } from './utils';
 
 const INITIAL_STATE = {
