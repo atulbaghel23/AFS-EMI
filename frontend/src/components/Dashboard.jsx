@@ -35,9 +35,9 @@ const CustomerDashboard = () => {
     const userCustId = (user?.customerId?._id || user?.customerId)?.toString();
     return loanCustId && userCustId && loanCustId === userCustId;
   });
-  
+
   const totalFinanced = clientLoans.reduce((sum, l) => sum + (l.principal || 0), 0);
-  
+
   let totalPaidAmt = 0;
   let totalOutstanding = 0;
   let overdueAmount = 0;
@@ -46,9 +46,9 @@ const CustomerDashboard = () => {
   clientLoans.forEach(loan => {
     const paid = (loan.schedule || []).filter(s => s.status === 'Paid');
     const pending = (loan.schedule || []).filter(s => s.status === 'Pending');
-    
+
     totalPaidAmt += paid.length * (loan.emi || 0);
-    
+
     const nextInstallment = pending.length > 0 ? pending[0] : loan.schedule[loan.schedule.length - 1];
     if (nextInstallment) {
       totalOutstanding += nextInstallment.balance || 0;
@@ -56,7 +56,7 @@ const CustomerDashboard = () => {
 
     pending.forEach(s => {
       if (new Date(s.dueDate) < new Date()) {
-        overdueAmount += loan.emi; 
+        overdueAmount += loan.emi;
       }
     });
 

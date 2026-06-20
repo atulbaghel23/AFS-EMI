@@ -191,7 +191,7 @@ const ORMDashboard = () => {
   const getLoanLabel = (l) => `${l.machineName} (${l.invoiceNumber || l._id.toString().substring(l._id.toString().length - 4)})`;
   const getCustomerLabel = (l) => l.customerId?.name || 'Unknown Customer';
 
-  const approvedLoans = loans.filter(l => ['Approved', 'Active'].includes(l.approvalStatus));
+  const approvedLoans = loans.filter(l => l.approvalStatus === 'Active');
   const machineOptions = ['ALL MACHINES', ...approvedLoans.map(getLoanLabel)];
   const customerOptions = ['ALL CUSTOMERS', ...new Set(approvedLoans.map(getCustomerLabel))];
 

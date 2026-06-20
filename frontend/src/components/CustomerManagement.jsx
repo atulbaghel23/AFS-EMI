@@ -444,7 +444,7 @@ const CustomerManagement = () => {
                   {localColConfig.overdue && (
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-[10px] font-mono font-bold text-red-500">
-                        {formatINR((state.data.loans || []).filter(l => (l.customerId?._id || l.customerId) === c._id).reduce((sum, l) => {
+                        {formatINR((state.data.loans || []).filter(l => (l.customerId?._id || l.customerId) === c._id && l.approvalStatus === 'Active').reduce((sum, l) => {
                           const ovd = (l.schedule || []).filter(s => s.status === 'Pending' && new Date(s.dueDate) < new Date());
                           return sum + ovd.reduce((s, inst) => s + inst.emi, 0);
                         }, 0))}

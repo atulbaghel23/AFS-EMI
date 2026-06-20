@@ -355,7 +355,7 @@ const CustomerAnalytics = () => {
 
   const customer = customers.find(c => c._id === selectedCustomerId);
 
-  const clientLoans = customer ? loans.filter(l => l.customerId?._id === customer?._id || l.customerId === customer?._id) : [];
+  const clientLoans = customer ? loans.filter(l => (l.customerId?._id === customer?._id || l.customerId === customer?._id) && l.approvalStatus === 'Active') : [];
 
   const machineOptions = [
     'ALL MACHINES',
