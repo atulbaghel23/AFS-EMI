@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Filter, Clock, ChevronDown, Download } from "lucide-react";
 
 import { state } from "../../state";
@@ -37,7 +37,15 @@ const ReportCenter = () => {
     advanced: []
   });
 
-  const { customers = [], loans = [], payments = [], machines = [] } = state?.data || {};
+  // Subscribe to global state so the component re-renders when data
+  // arrives from the API (e.g. after a page reload).
+  const [appData, setAppData] = useState(state.data);
+  useEffect(() => {
+    const unsubscribe = state.subscribe((newData) => setAppData({ ...newData }));
+    return () => unsubscribe();
+  }, []);
+
+  const { customers = [], loans = [], payments = [], machines = [] } = appData || {};
 
   // Drag to scroll logic shared across tables
   const scrollContainerRef = useRef(null);
