@@ -83,26 +83,16 @@ export const login = async (req, res) => {
         // mustResetPassword: user.mustResetPassword || false,
         // token: generateToken(user._id)
 
-        "success": true,
-        "statusCode": 200,
-        "message": "Data retrieved successfully",
-        "data": {
+        success: true,
+        statusCode: 200,
+        message: "Data retrieved successfully",
+        data: {
           _id: user._id,
           name: user.name,
           role: user.role,
           email: user.email
         },
-
-        // roleId: user.roleId,
-        // customerId: user.customerId,
-        // supervisorId: user.supervisorId || null,
-        // type: user.type || user.customerId?.type,
-        // status: user.status,
-        // settings: user.settings,
-        // mustResetPassword: user.mustResetPassword || false,
-        token: generateToken(user._id),
-        "error": null
-
+        token: generateToken(user._id)
       });
 
 
