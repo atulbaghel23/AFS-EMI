@@ -11,6 +11,7 @@ import {
   Download, BarChart3, Wrench, Package, FileText, HandCoins, Construction,
   Maximize2
 } from 'lucide-react';
+import ReportSection from './ReportCenter/report.jsx';
 
 // GitHub-style Asset Selector Dropdown with Search
 // GitHub-style Multi-Asset Selector Dropdown
@@ -129,7 +130,7 @@ const AssetFilter = ({ options, selected, onSelect, allLabel = 'ALL MACHINES', f
   );
 };
 
-const StatCard = ({ icon: Icon, label, value, accent, trend, isUp }) => (
+export const StatCard = ({ icon: Icon, label, value, accent, trend, isUp }) => (
   <div className="bg-bg-card border border-border-main rounded-xl p-5 group hover:border-text-dim transition-all relative overflow-hidden shadow-sm">
     <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full -mr-8 -mt-8" />
     <div className="flex items-center justify-between mb-4">
@@ -359,6 +360,12 @@ const ORMDashboard = () => {
             >
               Customer Centric
             </button>
+            <button
+              onClick={() => setViewMode('report')}
+              className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-all ${viewMode === 'report' ? 'bg-primary text-black shadow-sm' : 'text-text-dim hover:text-text-main'}`}
+            >
+              Report Center
+            </button>
           </div>
           {viewMode === 'machine' ? (
             <AssetFilter options={machineOptions} selected={selectedAssets} onSelect={setSelectedAssets} allLabel="ALL MACHINES" filterName="ASSET" />
@@ -368,208 +375,210 @@ const ORMDashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 shrink-0">
-        <StatCard icon={History} label="TOTAL FINANCED" value={formatINR(totalFinanced)} accent="text-text-dim" />
-        <StatCard icon={TrendingUp} label="TOTAL COLLECTED" value={formatINR(totalRecovery)} accent="text-green-500" />
-        <StatCard icon={ActivityIcon} label="REMAINING AMOUNT" value={formatINR(totalExposure)} accent="text-primary" />
-        <StatCard icon={AlertCircle} label="OVERDUE AMOUNT" value={formatINR(overdueAmount)} accent="text-red-500" />
+      {viewMode === 'report' ? (
+        <ReportSection />
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 shrink-0">
+            <StatCard icon={History} label="TOTAL FINANCED" value={formatINR(totalFinanced)} accent="text-text-dim" />
+            <StatCard icon={TrendingUp} label="TOTAL COLLECTED" value={formatINR(totalRecovery)} accent="text-green-500" />
+            <StatCard icon={ActivityIcon} label="REMAINING AMOUNT" value={formatINR(totalExposure)} accent="text-primary" />
+            <StatCard icon={AlertCircle} label="OVERDUE AMOUNT" value={formatINR(overdueAmount)} accent="text-red-500" />
 
-        <div className="bg-bg-card border border-border-main rounded-xl p-4 flex flex-col justify-between group hover:border-text-dim transition-all shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[9px] font-bold text-text-dim tracking-widest font-mono uppercase">COLLECTION HEALTH</span>
-            <ActivityIcon size={14} className="text-primary" />
-          </div>
-          <div className="flex items-end gap-3">
-            <span className="text-xl font-bold text-text-main font-mono">
-              {(() => {
-                const expectedTotal = totalRecovery + totalExposure;
-                let health = expectedTotal > 0 ? Math.round((totalRecovery / expectedTotal) * 100) : 0;
-                if (totalExposure > 0 && health >= 100) health = 99;
-                return health;
-              })()}%
-            </span>
-            <div className="flex-1 h-1.5 bg-bg-deep border border-border-main rounded-full mb-1.5 overflow-hidden">
-              <div
-                className="h-full bg-primary"
-                style={{
-                  width: `${(() => {
+            <div className="bg-bg-card border border-border-main rounded-xl p-4 flex flex-col justify-between group hover:border-text-dim transition-all shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[9px] font-bold text-text-dim tracking-widest font-mono uppercase">COLLECTION HEALTH</span>
+                <ActivityIcon size={14} className="text-primary" />
+              </div>
+              <div className="flex items-end gap-3">
+                <span className="text-xl font-bold text-text-main font-mono">
+                  {(() => {
                     const expectedTotal = totalRecovery + totalExposure;
                     let health = expectedTotal > 0 ? Math.round((totalRecovery / expectedTotal) * 100) : 0;
                     if (totalExposure > 0 && health >= 100) health = 99;
                     return health;
-                  })()}%`
-                }}
-              />
-            </div>
-          </div>
-        </div>
-        <StatCard icon={Truck} label={viewMode === 'machine' ? 'FLEET NODES' : 'PORTFOLIO UNITS'} value={`${filteredLoans.length} Units`} accent="text-blue-500" />
-      </div>
-
-      <div className="flex-1 grid grid-cols-12 gap-6 overflow-hidden min-h-0">
-        <div className="col-span-8 flex flex-col gap-4 overflow-hidden">
-          <div className="flex-1 bg-bg-card border border-border-main rounded-2xl overflow-hidden flex flex-col shadow-xl">
-            <div className="px-6 py-4 border-b border-border-main bg-bg-active/50 flex items-center justify-between">
-              <h3 className="text-[10px] font-black text-text-dim uppercase tracking-[0.2em] flex items-center gap-2">
-                <FileText size={14} className="text-primary" /> {viewMode === 'customer' ? 'CUSTOMER PORTFOLIO LEDGER' : 'MONTHLY RECOVERY PROTOCOL LEDGER'}
-              </h3>
-              <div className="flex items-center gap-4 text-[8px] font-bold text-text-dim uppercase tracking-widest">
-                <span>SYNCED: {new Date().toLocaleDateString()}</span>
-                <span>UNIT: INR</span>
+                  })()}%
+                </span>
+                <div className="flex-1 h-1.5 bg-bg-deep border border-border-main rounded-full mb-1.5 overflow-hidden">
+                  <div
+                    className="h-full bg-primary"
+                    style={{
+                      width: `${(() => {
+                        const expectedTotal = totalRecovery + totalExposure;
+                        let health = expectedTotal > 0 ? Math.round((totalRecovery / expectedTotal) * 100) : 0;
+                        if (totalExposure > 0 && health >= 100) health = 99;
+                        return health;
+                      })()}%`
+                    }}
+                  />
+                </div>
               </div>
             </div>
-            <div className="overflow-y-auto custom-scrollbar flex-1">
-              <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-bg-deep z-10">
-                  <tr className="border-b border-border-main text-[9px] font-bold text-text-dim uppercase tracking-widest">
-                    {viewMode === 'customer' ? (
-                      <>
-                        <th className="px-6 py-5">Customer</th>
-                        <th className="px-6 py-5">Machine</th>
-                        <th className="px-6 py-5">Total Expected</th>
-                        <th className="px-6 py-5">Remaining</th>
-                        <th className="px-6 py-5 text-green-600">Collected</th>
-                        <th className="px-6 py-5 text-red-500">Overdue</th>
-                        <th className="px-6 py-5 text-right">Collection %</th>
-                      </>
-                    ) : (
-                      <>
-                        <th className="px-6 py-5">Month</th>
-                        <th className="px-6 py-5">Openings</th>
-                        <th className="px-6 py-5">Due</th>
-                        <th className="px-6 py-5 text-green-600">Received</th>
-                        <th className="px-6 py-5 text-red-500">Overdue</th>
-                        <th className="px-6 py-5">Closing</th>
-                        <th className="px-6 py-5 text-right">Collection %</th>
-                      </>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-main/30">
-                  {viewMode === 'customer' ? (
-                    (() => {
-                      const customers = {};
-                      filteredLoans.forEach(l => {
-                        const customerIdStr = (l.customerId?._id || l.customerId)?.toString() || 'unknown';
-                        if (!customers[customerIdStr]) {
-                          customers[customerIdStr] = {
-                            id: customerIdStr,
-                            name: getCustomerLabel(l),
-                            machineCount: 0,
-                            remaining: 0,
-                            collected: 0,
-                            overdue: 0,
-                            loans: []
-                          };
-                        }
-                        const c = customers[customerIdStr];
-                        c.machineCount++;
-                        c.remaining += (l.schedule || []).filter(s => s.status === 'Pending').reduce((s, inst) => s + (inst.outstandingAmount !== undefined ? inst.outstandingAmount : inst.emi), 0);
-                        c.collected += (l.schedule || []).reduce((sum, s) => {
-                          const principalPaid = s.paidAmount !== undefined && s.paidAmount > 0
-                            ? s.paidAmount
-                            : ((s.emi || 0) - (s.outstandingAmount !== undefined ? s.outstandingAmount : (s.status === 'Clear' || s.status === 'Paid' ? 0 : (s.emi || 0))));
-                          return sum + principalPaid + (s.paidOverdueInterest || 0);
-                        }, 0);
-                        c.overdue += (l.schedule || []).filter(s => s.status === 'Pending' && new Date(s.dueDate) < new Date()).reduce((s, inst) => s + (inst.outstandingAmount !== undefined ? inst.outstandingAmount : inst.emi), 0);
-                        c.loans.push(l);
-                      });
+            <StatCard icon={Truck} label={viewMode === 'machine' ? 'FLEET NODES' : 'PORTFOLIO UNITS'} value={`${filteredLoans.length} Units`} accent="text-blue-500" />
+          </div>
 
-                      return Object.values(customers).map((c) => {
-                        const expectedTotal = c.collected + c.remaining;
-                        let collPercent = expectedTotal > 0 ? Math.round((c.collected / expectedTotal) * 100) : 0;
-                        if (c.remaining > 0 && collPercent >= 100) collPercent = 99;
-
-                        return (
-                          <tr key={c.id} onClick={() => {
-                            if (c.machineCount === 1) {
-                              state.setState({ view: 'loan-details', selectedLoanId: c.loans[0]._id, previousView: 'dashboard' });
-                            } else {
-                              state.setState({ view: 'customer-analytics', selectedCustomerId: c.id, previousView: 'dashboard' });
+          <div className="flex-1 grid grid-cols-12 gap-6 overflow-hidden min-h-0">
+            <div className="col-span-8 flex flex-col gap-4 overflow-hidden">
+              <div className="flex-1 bg-bg-card border border-border-main rounded-2xl overflow-hidden flex flex-col shadow-xl">
+                <div className="px-6 py-4 border-b border-border-main bg-bg-active/50 flex items-center justify-between">
+                  <h3 className="text-[10px] font-black text-text-dim uppercase tracking-[0.2em] flex items-center gap-2">
+                    <FileText size={14} className="text-primary" /> {viewMode === 'customer' ? 'CUSTOMER PORTFOLIO LEDGER' : 'MONTHLY RECOVERY PROTOCOL LEDGER'}
+                  </h3>
+                  <div className="flex items-center gap-4 text-[8px] font-bold text-text-dim uppercase tracking-widest">
+                    <span>SYNCED: {new Date().toLocaleDateString()}</span>
+                    <span>UNIT: INR</span>
+                  </div>
+                </div>
+                <div className="overflow-y-auto custom-scrollbar flex-1">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="sticky top-0 bg-bg-deep z-10">
+                      <tr className="border-b border-border-main text-[9px] font-bold text-text-dim uppercase tracking-widest">
+                        {viewMode === 'customer' ? (
+                          <>
+                            <th className="px-6 py-5">Customer</th>
+                            <th className="px-6 py-5">Machine</th>
+                            <th className="px-6 py-5">Total Expected</th>
+                            <th className="px-6 py-5">Remaining</th>
+                            <th className="px-6 py-5 text-green-600">Collected</th>
+                            <th className="px-6 py-5 text-red-500">Overdue</th>
+                            <th className="px-6 py-5 text-right">Collection %</th>
+                          </>
+                        ) : (
+                          <>
+                            <th className="px-6 py-5">Month</th>
+                            <th className="px-6 py-5">Openings</th>
+                            <th className="px-6 py-5">Due</th>
+                            <th className="px-6 py-5 text-green-600">Received</th>
+                            <th className="px-6 py-5 text-red-500">Overdue</th>
+                            <th className="px-6 py-5">Closing</th>
+                            <th className="px-6 py-5 text-right">Collection %</th>
+                          </>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-main/30">
+                      {viewMode === 'customer' ? (
+                        (() => {
+                          const customers = {};
+                          filteredLoans.forEach(l => {
+                            const customerIdStr = (l.customerId?._id || l.customerId)?.toString() || 'unknown';
+                            if (!customers[customerIdStr]) {
+                              customers[customerIdStr] = {
+                                id: customerIdStr,
+                                name: getCustomerLabel(l),
+                                machineCount: 0,
+                                remaining: 0,
+                                collected: 0,
+                                overdue: 0,
+                                loans: []
+                              };
                             }
-                          }} className="hover:bg-bg-active transition-colors group cursor-pointer">
-                            <td className="px-6 py-5 text-[11px] font-black text-text-main">{c.name}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{c.machineCount} {c.machineCount === 1 ? 'Machine' : 'Machines'}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(expectedTotal)}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(c.remaining)}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono font-bold text-green-600">{formatINR(c.collected)}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono font-bold text-red-500">{formatINR(c.overdue)}</td>
+                            const c = customers[customerIdStr];
+                            c.machineCount++;
+                            c.remaining += (l.schedule || []).filter(s => s.status === 'Pending').reduce((s, inst) => s + (inst.outstandingAmount !== undefined ? inst.outstandingAmount : inst.emi), 0);
+                            c.collected += (l.schedule || []).reduce((sum, s) => {
+                              const principalPaid = s.paidAmount !== undefined && s.paidAmount > 0
+                                ? s.paidAmount
+                                : ((s.emi || 0) - (s.outstandingAmount !== undefined ? s.outstandingAmount : (s.status === 'Clear' || s.status === 'Paid' ? 0 : (s.emi || 0))));
+                              return sum + principalPaid + (s.paidOverdueInterest || 0);
+                            }, 0);
+                            c.overdue += (l.schedule || []).filter(s => s.status === 'Pending' && new Date(s.dueDate) < new Date()).reduce((s, inst) => s + (inst.outstandingAmount !== undefined ? inst.outstandingAmount : inst.emi), 0);
+                            c.loans.push(l);
+                          });
+
+                          return Object.values(customers).map((c) => {
+                            const expectedTotal = c.collected + c.remaining;
+                            let collPercent = expectedTotal > 0 ? Math.round((c.collected / expectedTotal) * 100) : 0;
+                            if (c.remaining > 0 && collPercent >= 100) collPercent = 99;
+
+                            return (
+                              <tr key={c.id} onClick={() => {
+                                if (c.machineCount === 1) {
+                                  state.setState({ view: 'loan-details', selectedLoanId: c.loans[0]._id, previousView: 'dashboard' });
+                                } else {
+                                  state.setState({ view: 'customer-analytics', selectedCustomerId: c.id, previousView: 'dashboard' });
+                                }
+                              }} className="hover:bg-bg-active transition-colors group cursor-pointer">
+                                <td className="px-6 py-5 text-[11px] font-black text-text-main">{c.name}</td>
+                                <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{c.machineCount} {c.machineCount === 1 ? 'Machine' : 'Machines'}</td>
+                                <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(expectedTotal)}</td>
+                                <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(c.remaining)}</td>
+                                <td className="px-6 py-5 text-[11px] font-mono font-bold text-green-600">{formatINR(c.collected)}</td>
+                                <td className="px-6 py-5 text-[11px] font-mono font-bold text-red-500">{formatINR(c.overdue)}</td>
+                                <td className="px-6 py-5 text-right">
+                                  <div className="flex items-center justify-end gap-3">
+                                    <div className="w-16 h-1 bg-bg-deep rounded-full overflow-hidden border border-border-main">
+                                      <div className={`h-full ${collPercent > 50 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${Math.min(100, collPercent)}%` }} />
+                                    </div>
+                                    <span className="text-[10px] font-mono font-bold text-text-main">{collPercent}%</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()
+                      ) : (
+                        monthlyData.map((row, i) => (
+                          <tr key={i} className="hover:bg-bg-active transition-colors group">
+                            <td className="px-6 py-5 text-[11px] font-black text-text-main">{row.month}</td>
+                            <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(row.opening)}</td>
+                            <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(row.due)}</td>
+                            <td className="px-6 py-5 text-[11px] font-mono font-bold text-green-600">{formatINR(row.received)}</td>
+                            <td className="px-6 py-5 text-[11px] font-mono font-bold text-red-500">{formatINR(row.overdue)}</td>
+                            <td className="px-6 py-5 text-[11px] font-mono text-text-main">{formatINR(row.closing)}</td>
                             <td className="px-6 py-5 text-right">
                               <div className="flex items-center justify-end gap-3">
                                 <div className="w-16 h-1 bg-bg-deep rounded-full overflow-hidden border border-border-main">
-                                  <div className={`h-full ${collPercent > 50 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${Math.min(100, collPercent)}%` }} />
+                                  <div className={`h-full ${row.progress !== 'NA' && row.progress > 50 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${row.progress === 'NA' ? 0 : row.progress}%` }} />
                                 </div>
-                                <span className="text-[10px] font-mono font-bold text-text-main">{collPercent}%</span>
+                                <span className="text-[10px] font-mono font-bold text-text-main">{row.progress === 'NA' ? 'NA' : `${row.progress}%`}</span>
                               </div>
                             </td>
                           </tr>
-                        );
-                      });
-                    })()
-                  ) : (
-                    monthlyData.map((row, i) => (
-                      <tr key={i} className="hover:bg-bg-active transition-colors group">
-                        <td className="px-6 py-5 text-[11px] font-black text-text-main">{row.month}</td>
-                        <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(row.opening)}</td>
-                        <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(row.due)}</td>
-                        <td className="px-6 py-5 text-[11px] font-mono font-bold text-green-600">{formatINR(row.received)}</td>
-                        <td className="px-6 py-5 text-[11px] font-mono font-bold text-red-500">{formatINR(row.overdue)}</td>
-                        <td className="px-6 py-5 text-[11px] font-mono text-text-main">{formatINR(row.closing)}</td>
-                        <td className="px-6 py-5 text-right">
-                          <div className="flex items-center justify-end gap-3">
-                            <div className="w-16 h-1 bg-bg-deep rounded-full overflow-hidden border border-border-main">
-                              <div className={`h-full ${row.progress !== 'NA' && row.progress > 50 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${row.progress === 'NA' ? 0 : row.progress}%` }} />
-                            </div>
-                            <span className="text-[10px] font-mono font-bold text-text-main">{row.progress === 'NA' ? 'NA' : `${row.progress}%`}</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div className="col-span-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 min-h-0">
-          <section className="bg-bg-card border border-border-main rounded-2xl p-5 flex flex-col shrink-0 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[9px] font-bold text-text-dim uppercase tracking-widest">EFFICIENCY TREND</h3>
-              <div className="flex items-center gap-1 text-[7px] font-black text-green-500 uppercase tracking-widest">
-                <TrendingUp size={10} /> POSITIVE_CURVE
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-            <div className="h-32 relative flex items-end justify-between px-2 group">
-              <svg className="absolute inset-0 w-full h-full p-4 overflow-visible" preserveAspectRatio="none">
-                <path
-                  d={`M ${monthlyData.map((d, i) => `${(i / (monthlyData.length - 1 || 1)) * 300} ${100 - (d.progress === 'NA' ? 0 : d.progress)}`).join(' L ')}`}
-                  fill="none"
-                  stroke="var(--color-primary)"
-                  strokeWidth="2.5"
-                />
-                <path
-                  d={`M ${monthlyData.map((d, i) => `${(i / (monthlyData.length - 1 || 1)) * 300} ${100 - (d.progress === 'NA' ? 0 : d.progress)}`).join(' L ')} L ${monthlyData.length > 0 ? 300 : 0} 100 L 0 100 Z`}
-                  fill="url(#gradient)"
-                  opacity="0.1"
-                />
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="var(--color-primary)" />
-                    <stop offset="100%" stopColor="transparent" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              {monthlyData.map(m => (
-                <span key={m.month} className="text-[7px] font-bold text-text-dim mt-auto">{m.month}</span>
-              ))}
+            <div className="col-span-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 min-h-0">
+              <section className="bg-bg-card border border-border-main rounded-2xl p-5 flex flex-col shrink-0 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[9px] font-bold text-text-dim uppercase tracking-widest">EFFICIENCY TREND</h3>
+                  <div className="flex items-center gap-1 text-[7px] font-black text-green-500 uppercase tracking-widest">
+                    <TrendingUp size={10} /> POSITIVE_CURVE
+                  </div>
+                </div>
+                <div className="h-32 relative flex items-end justify-between px-2 group">
+                  <svg className="absolute inset-0 w-full h-full p-4 overflow-visible" preserveAspectRatio="none">
+                    <path
+                      d={`M ${monthlyData.map((d, i) => `${(i / (monthlyData.length - 1 || 1)) * 300} ${100 - (d.progress === 'NA' ? 0 : d.progress)}`).join(' L ')}`}
+                      fill="none"
+                      stroke="var(--color-primary)"
+                      strokeWidth="2.5"
+                    />
+                    <path
+                      d={`M ${monthlyData.map((d, i) => `${(i / (monthlyData.length - 1 || 1)) * 300} ${100 - (d.progress === 'NA' ? 0 : d.progress)}`).join(' L ')} L ${monthlyData.length > 0 ? 300 : 0} 100 L 0 100 Z`}
+                      fill="url(#gradient)"
+                      opacity="0.1"
+                    />
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="var(--color-primary)" />
+                        <stop offset="100%" stopColor="transparent" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  {monthlyData.map(m => (
+                    <span key={m.month} className="text-[7px] font-bold text-text-dim mt-auto">{m.month}</span>
+                  ))}
+                </div>
+              </section>
             </div>
-          </section>
-
-
-
-
-        </div>
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
