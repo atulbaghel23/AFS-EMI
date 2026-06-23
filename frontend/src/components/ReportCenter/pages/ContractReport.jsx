@@ -120,7 +120,7 @@ const ContractReport = forwardRef(({ customers = [], loans = [], globalFilters, 
   }));
 
   return (
-    <div className="flex flex-col gap-6 min-h-0 shrink-0">
+    <div className="flex flex-col gap-6 min-h-0 h-full flex-1 w-full">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0">
         <StatCard icon={FileCheck} label="ACTIVE CONTRACTS" value={activeContractsCount} accent="text-blue-500" />
         <StatCard icon={Banknote} label="CONTRACT REVENUE" value={formatINR(contractRevenueValue)} accent="text-green-500" />

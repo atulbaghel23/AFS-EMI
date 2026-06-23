@@ -145,7 +145,7 @@ const MachineReport = forwardRef(({ machines = [], loans = [], globalFilters, sc
   }));
 
   return (
-    <div className="flex flex-col gap-6 min-h-0 shrink-0">
+    <div className="flex flex-col gap-6 min-h-0 h-full flex-1 w-full">
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 shrink-0">
         <StatCard icon={Package} label="TOTAL MACHINES" value={totalMachines} accent="text-primary" />
         <StatCard icon={Check} label="AVAILABLE" value={availableMachines} accent="text-green-500" />

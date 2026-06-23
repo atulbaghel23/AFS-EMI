@@ -22,6 +22,7 @@ import FMCDailyHours from './components/FMCDailyHours.jsx';
 import FMCTickets from './components/FMCTickets.jsx';
 import FMCBilling from './components/FMCBilling.jsx';
 import ORMDashboard from './components/ORMDashboard.jsx';
+import ReportCenter from './components/ReportCenter/report.jsx';
 import FinancingPipeline from './components/FinancingPipeline.jsx';
 import ForceResetPasswordPage from './components/ForceResetPasswordPage.jsx';
 import InvoiceSearch from './components/InvoiceSearch.jsx';
@@ -90,6 +91,9 @@ const App = () => {
         if (user?.role !== 'OEM') return <AccessDenied />;
         if (!hasPermission(user, 'dashboard', 'read')) return <AccessDenied />;
         return <ORMDashboard />;
+      case 'report-center':
+        if (!hasPermission(user, 'dashboard', 'read')) return <AccessDenied />;
+        return <ReportCenter />;
       case 'customer-dashboard':
         if (!hasPermission(user, 'dashboard', 'read')) return <AccessDenied />;
         return <Dashboard />;

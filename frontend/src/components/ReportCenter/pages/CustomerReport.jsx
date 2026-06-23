@@ -109,7 +109,7 @@ const CustomerReport = forwardRef(({ customers = [], loans = [], payments = [], 
   }));
 
   return (
-    <div className="flex flex-col gap-6 min-h-0 shrink-0">
+    <div className="flex flex-col gap-6 min-h-0 h-full flex-1 w-full">
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 shrink-0">
         <StatCard icon={Users} label="TOTAL CUSTOMERS" value={totalCustomers} accent="text-primary" />
         <StatCard icon={UserCheck} label="ACTIVE CUSTOMERS" value={activeCustomers} accent="text-green-500" />

@@ -133,7 +133,7 @@ const EMIPaymentReport = forwardRef(({ customers = [], loans = [], payments = []
   }));
 
   return (
-    <div className="flex flex-col gap-6 min-h-0 shrink-0">
+    <div className="flex flex-col gap-6 min-h-0 h-full flex-1 w-full">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0">
         <StatCard icon={Banknote} label="EMI COLLECTED" value={formatINR(emiCollected)} accent="text-green-500" />
         <StatCard icon={Wallet} label="OUTSTANDING BAL" value={formatINR(emiOutstanding)} accent="text-blue-500" />

@@ -14,7 +14,8 @@ import {
   LayoutGrid,
   Layers,
   ChevronDown,
-  FileText
+  FileText,
+  BarChart3
 } from 'lucide-react';
 
 import { hasPermission } from '../utils';
@@ -29,6 +30,12 @@ const Sidebar = () => {
       id: 'oem-dashboard',
       icon: LayoutDashboard,
       label: 'Dashboard',
+      module: 'dashboard'
+    },
+    {
+      id: 'report-center',
+      icon: BarChart3,
+      label: 'Report',
       module: 'dashboard'
     },
     {
@@ -224,6 +231,11 @@ const Sidebar = () => {
       id: 'fmc-dashboard',
       icon: LayoutGrid,
       label: 'FMC Dashboard'
+    },
+    {
+      id: 'report-center',
+      icon: BarChart3,
+      label: 'Report Center'
     },
     {
       id: 'fmc-tickets',

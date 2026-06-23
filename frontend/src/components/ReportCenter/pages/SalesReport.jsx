@@ -122,7 +122,7 @@ const SalesReport = forwardRef(({ customers = [], loans = [], globalFilters, scr
   }));
 
   return (
-    <div className="flex flex-col gap-6 min-h-0 shrink-0">
+    <div className="flex flex-col gap-6 min-h-0 h-full flex-1 w-full">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0">
         <StatCard icon={Banknote} label="TOTAL SALES VALUE" value={formatINR(totalSalesValue)} accent="text-primary" />
         <StatCard icon={Wallet} label="AVG DOWN PAYMENT" value={formatINR(avgDownPayment)} accent="text-blue-500" />

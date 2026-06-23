@@ -204,7 +204,7 @@ const ReportCenter = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-y-auto custom-scrollbar pr-2 animate-fade-in">
+    <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden pr-2 animate-fade-in">
 
       {/* Filter Drawer */}
       <FilterSidebar
@@ -280,7 +280,7 @@ const ReportCenter = () => {
         <div className="flex-1 min-w-[8px]" />
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0 h-full">
         {activeReport === "Machine Reports" && <MachineReport ref={machineReportRef} machines={machines} loans={loans} globalFilters={globalFilters} {...dragHandlers} />}
         {activeReport === "Customer Reports" && <CustomerReport ref={customerReportRef} customers={customers} loans={loans} payments={payments} globalFilters={globalFilters} {...dragHandlers} />}
         {activeReport === "Sales Reports" && <SalesReport ref={salesReportRef} customers={customers} loans={loans} globalFilters={globalFilters} {...dragHandlers} />}

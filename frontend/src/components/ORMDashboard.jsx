@@ -11,7 +11,6 @@ import {
   Download, BarChart3, Wrench, Package, FileText, HandCoins, Construction,
   Maximize2
 } from 'lucide-react';
-import ReportSection from './ReportCenter/report.jsx';
 
 // GitHub-style Asset Selector Dropdown with Search
 // GitHub-style Multi-Asset Selector Dropdown
@@ -360,12 +359,6 @@ const ORMDashboard = () => {
             >
               Customer Centric
             </button>
-            <button
-              onClick={() => setViewMode('report')}
-              className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-all ${viewMode === 'report' ? 'bg-primary text-black shadow-sm' : 'text-text-dim hover:text-text-main'}`}
-            >
-              Report Center
-            </button>
           </div>
           {viewMode === 'machine' ? (
             <AssetFilter options={machineOptions} selected={selectedAssets} onSelect={setSelectedAssets} allLabel="ALL MACHINES" filterName="ASSET" />
@@ -375,11 +368,7 @@ const ORMDashboard = () => {
         </div>
       </div>
 
-      {viewMode === 'report' ? (
-        <ReportSection />
-      ) : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 shrink-0">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 shrink-0">
             <StatCard icon={History} label="TOTAL FINANCED" value={formatINR(totalFinanced)} accent="text-text-dim" />
             <StatCard icon={TrendingUp} label="TOTAL COLLECTED" value={formatINR(totalRecovery)} accent="text-green-500" />
             <StatCard icon={ActivityIcon} label="REMAINING AMOUNT" value={formatINR(totalExposure)} accent="text-primary" />
@@ -577,8 +566,6 @@ const ORMDashboard = () => {
               </section>
             </div>
           </div>
-        </>
-      )}
     </div>
   );
 };

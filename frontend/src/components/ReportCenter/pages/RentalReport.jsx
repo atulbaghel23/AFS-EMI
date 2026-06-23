@@ -122,7 +122,7 @@ const RentalReport = forwardRef(({ customers = [], loans = [], globalFilters, sc
   }));
 
   return (
-    <div className="flex flex-col gap-6 min-h-0 shrink-0">
+    <div className="flex flex-col gap-6 min-h-0 h-full flex-1 w-full">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0">
         <StatCard icon={PlayCircle} label="ACTIVE RENTALS" value={activeRentalsCount} accent="text-blue-500" />
         <StatCard icon={Banknote} label="RENTAL REVENUE" value={formatINR(rentalRevenue)} accent="text-green-500" />
