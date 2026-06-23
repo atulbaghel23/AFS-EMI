@@ -82,14 +82,13 @@ export const login = async (req, res) => {
         settings: user.settings,
         mustResetPassword: user.mustResetPassword || false,
         token: generateToken(user._id),
-
-
       });
-
-
-
     } else {
-      res.status(401).json({ message: 'Invalid email, password or role' });
+      res.status(401).json({
+        success: false,
+        statusCode: 401,
+        message: "Invalid email, password or role"
+      })
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
