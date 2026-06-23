@@ -282,7 +282,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 mt-4 overflow-y-auto custom-scrollbar px-3">
+      <nav className="flex-1 min-h-0 mt-4 overflow-y-auto custom-scrollbar px-3 pb-8">
 
         <p className="px-5 text-[10px] font-black text-[#444c56] uppercase tracking-[0.2em] mb-4">
           System Console
