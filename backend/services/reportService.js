@@ -56,6 +56,9 @@ export const generateExcelReport = async (loan) => {
     column.width = 15;
   });
 
+  // Enable advanced filtering for the data table headers
+  worksheet.autoFilter = 'A5:I5';
+
   const buffer = await workbook.xlsx.writeBuffer();
   return buffer;
 };
@@ -724,7 +727,7 @@ export const generatePPTReport = async (loan, allLoans = []) => {
 };
 
 export const generatePDFReport = async (loan) => {
-  const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({ headless: "new", executablePath: "C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe", args: ['--no-sandbox'] });
   const page = await browser.newPage();
   
   const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
@@ -1777,7 +1780,7 @@ export const generateGlobalPPTReport = async (loans, payments, months, viewMode 
 };
 
 export const generateGlobalPDFReport = async (loans, payments, months, viewMode = 'machine') => {
-  const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({ headless: "new", executablePath: "C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe", args: ['--no-sandbox'] });
   const page = await browser.newPage();
   const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 

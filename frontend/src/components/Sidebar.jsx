@@ -32,12 +32,7 @@ const Sidebar = () => {
       label: "Dashboard",
       module: "dashboard",
     },
-    {
-      id: "report-center",
-      icon: BarChart3,
-      label: "Report",
-      module: "dashboard",
-    },
+
     {
       id: "customers",
       icon: Users,

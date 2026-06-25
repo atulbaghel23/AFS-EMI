@@ -452,8 +452,8 @@ const PaymentTracker = () => {
                   <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
                     <h4 className="text-[11px] font-black text-primary uppercase tracking-widest mb-2">Step 1: Format Compliance</h4>
                     <p className="text-[10px] text-text-dim mb-4">Ensure your Excel file precisely matches the system template structure. Missing fields will trigger validation blocks.</p>
-                    <button onClick={handleExportFormat} className="text-[10px] font-bold text-white bg-[#1c2128] hover:bg-[#30363d] px-4 py-2 rounded border border-[#30363d] transition-all">
-                      ↓ Download Sample Template
+                    <button onClick={handleExportFormat} className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold text-[#f0883e] border border-[#f0883e]/30 rounded-lg hover:bg-[#f0883e]/10 transition-all w-fit">
+                      <Download size={14} /> DOWNLOAD SAMPLE TEMPLATE
                     </button>
                   </div>
 

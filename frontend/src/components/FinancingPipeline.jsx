@@ -1084,7 +1084,7 @@ const FinancingPipeline = () => {
 
           return (
             <div key={st.i} className="flex items-center flex-1 last:flex-none">
-              <div className="relative group/dot flex-shrink-0 flex flex-col items-center">
+              <div className="relative group/dot flex-shrink-0 flex flex-col items-center z-0 hover:z-50">
                 <div className={`w-2.5 h-2.5 rounded-full border transition-all duration-300 cursor-help ${dotColor}`}></div>
                 <span className="absolute top-4 left-1/2 -translate-x-1/2 text-[8px] font-black text-text-dim uppercase tracking-widest text-center w-16 opacity-70">{st.name.substring(0, 3)}</span>
 
@@ -1211,8 +1211,8 @@ const FinancingPipeline = () => {
         </div>
       </div>
 
-      <div className="bg-bg-card border border-border-main rounded-2xl overflow-hidden shadow-2xl flex-1 flex flex-col min-h-0">
-        <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
+      <div className="bg-bg-card border border-border-main rounded-2xl shadow-2xl flex-1 flex flex-col min-h-0" style={{ overflow: 'visible' }}>
+        <div className="overflow-visible flex-1">
           <table className="w-full text-left relative">
             <thead className="sticky top-0 z-[40] bg-bg-active shadow-sm">
               <tr className="border-b border-border-main">
@@ -1229,7 +1229,7 @@ const FinancingPipeline = () => {
                 const customer = customers.find(c => c._id === l.customerId || c._id === l.customerId?._id);
 
                 return (
-                  <tr key={l._id || i} onClick={() => setSelectedLoan(l)} className="hover:bg-bg-active transition-colors group cursor-pointer">
+                  <tr key={l._id || i} onClick={() => setSelectedLoan(l)} className="hover:bg-bg-active transition-colors group cursor-pointer relative z-0 hover:z-50">
                     <td className="px-5 py-4">
                       <p className="font-black text-text-main text-xs uppercase">{l.machineName}</p>
                       <p className="text-[8px] font-mono text-text-dim/60">{l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB') : '—'}</p>
@@ -1243,10 +1243,10 @@ const FinancingPipeline = () => {
                     <td className="px-5 py-4 font-mono font-bold text-text-main text-xs">
                       {formatINR(l.emi)}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 relative z-0 hover:z-50">
                       {renderStageDots(l, i)}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 relative z-0 hover:z-50">
                       <div className="relative group inline-block">
                         <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border transition-all ${getLoanStageName(l.approvalStatus) === 'Approval' ? 'cursor-help underline decoration-dashed underline-offset-4' : ''}`}
                           style={{ background: `${getStatusColor(l.approvalStatus)}15`, color: getStatusColor(l.approvalStatus), borderColor: `${getStatusColor(l.approvalStatus)}30`, textDecorationColor: getLoanStageName(l.approvalStatus) === 'Approval' ? `${getStatusColor(l.approvalStatus)}80` : undefined }}>

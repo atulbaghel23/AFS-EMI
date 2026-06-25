@@ -467,7 +467,7 @@ const MachineManagement = () => {
                     )}
                     {localColConfig.control && (
                       <td className="px-6 py-4 text-right sticky right-0 bg-bg-card/95 backdrop-blur-md">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-2 transition-opacity">
                           <button onClick={(e) => { e.stopPropagation(); setDetailMachine(m); }} className="w-8 h-8 flex items-center justify-center rounded-lg bg-bg-deep/50 text-text-dim hover:text-text-main hover:bg-bg-active border border-border-main transition-all">
                             <Eye size={14} />
                           </button>

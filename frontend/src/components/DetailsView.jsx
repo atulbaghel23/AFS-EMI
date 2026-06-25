@@ -286,7 +286,7 @@ const LoanDetails = () => {
     showNotification(`Generating ${format.toUpperCase()} Report...`, 'info');
 
     try {
-      const response = await fetch(`https://afs-emi.vercel.app/api/loans/${loan._id}/report/${format}`, {
+      const response = await fetch(`${state.apiUrl}/loans/${loan._id}/report/${format}`, {
         headers: {
           'Authorization': `Bearer ${state.data.user?.token}`
         }
@@ -298,7 +298,8 @@ const LoanDetails = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       const ext = format === 'excel' ? 'xlsx' : (format === 'ppt' ? 'pptx' : 'pdf');
-      const fileName = `Report_${loan.machineName.replace(/\s+/g, '_')}.${ext}`;
+      const machineStr = loan?.machineName ? loan.machineName.replace(/\s+/g, '_') : 'Asset';
+      const fileName = `Report_${machineStr}.${ext}`;
 
       link.href = url;
       link.setAttribute('download', fileName);
@@ -319,7 +320,7 @@ const LoanDetails = () => {
     showNotification(`Downloading PDF receipt for Installment #${instNum}...`, 'info');
 
     try {
-      const response = await fetch(`https://afs-emi.vercel.app/api/loans/${loan._id}/receipt/${instNum}`, {
+      const response = await fetch(`${state.apiUrl}/loans/${loan._id}/receipt/${instNum}`, {
         headers: {
           'Authorization': `Bearer ${state.data.user?.token}`
         }
