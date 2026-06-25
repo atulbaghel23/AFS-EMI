@@ -7,7 +7,7 @@ export const getMachines = async (req, res) => {
 
     if (paginated === 'true' || page) {
       let filter = {};
-      
+
       if (search) {
         filter.$or = [
           { name: { $regex: search, $options: 'i' } },
@@ -28,10 +28,20 @@ export const getMachines = async (req, res) => {
       const total = await Machine.countDocuments(filter);
 
       return res.json({
-        machines,
-        total,
-        page: pageNumber,
-        totalPages: Math.ceil(total / limitNumber)
+        success: true,
+        statusCode: 200,
+        message: "Data retrieved successfully",
+        data: {
+          machines,
+          total,
+          page: pageNumber,
+          totalPages: Math.ceil(total / limitNumber)
+        },
+        // machines,
+        // total,
+        // page: pageNumber,
+        // totalPages: Math.ceil(total / limitNumber)
+
       });
     }
 
@@ -47,14 +57,14 @@ export const createMachine = async (req, res) => {
   try {
     const machineData = { ...req.body };
     console.log("Received machine data:", JSON.stringify(machineData, null, 2));
-    
+
     // Ensure nested objects exist to trigger Mongoose schema defaults
     if (!machineData.pricing) machineData.pricing = {};
     if (!machineData.specs) machineData.specs = {};
     if (!machineData.warranty) machineData.warranty = {};
     if (!machineData.attachments) machineData.attachments = [];
     if (!machineData.images) machineData.images = [];
-    
+
     if (!machineData.machineId) {
       machineData.machineId = `LM-${Math.floor(100000 + Math.random() * 900000)}`;
     }
@@ -71,13 +81,13 @@ export const updateMachine = async (req, res) => {
     const updateData = { ...req.body };
     console.log("Updating machine ID:", req.params.id);
     console.log("Update payload documents count:", updateData.documents?.length || 0);
-    
+
     if (updateData.pricing === null) delete updateData.pricing;
     if (updateData.specs === null) delete updateData.specs;
     if (updateData.warranty === null) delete updateData.warranty;
     if (updateData.attachments === null) delete updateData.attachments;
     if (updateData.images === null) delete updateData.images;
-    
+
     const updatedMachine = await Machine.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(updatedMachine);
   } catch (error) {
@@ -110,12 +120,12 @@ export const syncCategories = async (req, res) => {
   try {
     const response = await fetch('https://lipl.sods.app/api/dmobile/getCategories');
     const data = await response.json();
-    
+
     if (data.status && data.result) {
       const ops = data.result.map(cat => ({
         updateOne: {
           filter: { cat_id: cat.cat_id },
-          update: { 
+          update: {
             cat_id: cat.cat_id,
             cat_name: cat.cat_name,
             rawData: cat
@@ -123,7 +133,7 @@ export const syncCategories = async (req, res) => {
           upsert: true
         }
       }));
-      
+
       if (ops.length > 0) {
         await Category.bulkWrite(ops);
       }

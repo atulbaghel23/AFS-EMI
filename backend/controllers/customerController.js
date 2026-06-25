@@ -5,8 +5,20 @@ import { sendNotification } from '../services/notificationService.js';
 
 export const getCustomers = async (req, res) => {
   try {
-    const customers = await Customer.find().sort({ createdAt: -1 });
-    res.json(customers);
+    let filter = {};
+    if (req.user && req.user.role && req.user.role.toUpperCase() === 'CUSTOMER') {
+      filter._id = req.user.customerId || null;
+    }
+    const customers = await Customer.find(filter).sort({ createdAt: -1 });
+    res.json(
+      {
+        success: true,
+        statusCode: 200,
+        message: "Data retrieved successfully",
+        data: { customers },
+        error: null
+      }
+    );
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
