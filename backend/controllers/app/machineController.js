@@ -3,53 +3,110 @@ import Category from '../../models/Category.js';
 
 export const getMachines = async (req, res) => {
   try {
-    const { page, limit, search, category, paginated } = req.query;
+    const {
+      page,
+      limit,
+      search,
+      category,
+      paginated,
+      minPrice,
+      maxPrice,
+    } = req.query;
 
-    if (paginated === 'true' || page) {
-      let filter = {};
+    let filter = {};
 
-      if (search) {
-        filter.$or = [
-          { name: { $regex: search, $options: 'i' } },
-          { model: { $regex: search, $options: 'i' } },
-          { category: { $regex: search, $options: 'i' } }
-        ];
+    // Search
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { model: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Category
+    if (category && category !== "All Categories") {
+      filter.category = {
+        $regex: new RegExp(`^${category}$`, "i"),
+      };
+    }
+
+    // Price
+    if (minPrice || maxPrice) {
+      filter["pricing.totalPrice"] = {};
+
+      if (minPrice) {
+        filter["pricing.totalPrice"].$gte = Number(minPrice);
       }
 
-      if (category && category !== 'All Categories') {
-        filter.category = { $regex: new RegExp(`^${category}$`, 'i') };
+      if (maxPrice) {
+        filter["pricing.totalPrice"].$lte = Number(maxPrice);
       }
+    }
 
+    // Pagination
+    if (paginated === "true" || page) {
       const pageNumber = parseInt(page) || 1;
       const limitNumber = parseInt(limit) || 10;
       const skip = (pageNumber - 1) * limitNumber;
 
-      const machines = await Machine.find(filter).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limitNumber);
+      const machines = await Machine.find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(skip)
+        .limit(limitNumber);
+
       const total = await Machine.countDocuments(filter);
 
       return res.json({
         success: true,
         statusCode: 200,
         message: "Data retrieved successfully",
-        data: {
-          machines,
-          total,
-          page: pageNumber,
-          totalPages: Math.ceil(total / limitNumber)
+        data: machines,
+        pagination: {
+          totalRecords: total,
+          currentPage: pageNumber,
+          perPage: limitNumber,
+          totalPages: Math.ceil(total / limitNumber),
+          hasNextPage: pageNumber < Math.ceil(total / limitNumber),
+          hasPreviousPage: pageNumber > 1,
+          nextPage:
+            pageNumber < Math.ceil(total / limitNumber)
+              ? pageNumber + 1
+              : null,
+          previousPage:
+            pageNumber > 1
+              ? pageNumber - 1
+              : null,
         },
-        // machines,
-        // total,
-        // page: pageNumber,
-        // totalPages: Math.ceil(total / limitNumber)
-
+        filters: {
+          category: category || null,
+          search: search || null,
+          minPrice: minPrice || null,
+          maxPrice: maxPrice || null,
+        },
       });
     }
 
-    // Fallback for global unpaginated requests
-    const machines = await Machine.find().sort({ createdAt: -1, _id: -1 });
-    res.json(machines);
+    // Non-paginated response
+    const machines = await Machine.find(filter).sort({
+      createdAt: -1,
+      _id: -1,
+    });
+
+    return res.json({
+      success: true,
+      statusCode: 200,
+      message: "Data retrieved successfully",
+      data: machines,
+      total: machines.length,
+      page: 1,
+      totalPages: Math.ceil(machines.length / 10),
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 

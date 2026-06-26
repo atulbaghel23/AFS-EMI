@@ -355,6 +355,7 @@ const NewAssignment = ({ machines, customers, user }) => {
     downPayment: 0,
     downPaymentInstallments: 1,
     interestRate: 12,
+    marginInterestRate: 0,
     delayInterest: 24, // Overdue/Delay interest default
     compoundOverdueInterest: false,
     selectedAttachments: [],
@@ -402,7 +403,8 @@ const NewAssignment = ({ machines, customers, user }) => {
     'flat_upfront',
     formData.emiStartDate ? new Date(formData.emiStartDate) : new Date(),
     parseFloat(formData.downPayment) || 0,
-    parseInt(formData.downPaymentInstallments) || 0
+    parseInt(formData.downPaymentInstallments) || 0,
+    parseFloat(formData.marginInterestRate) || 0
   );
   
   // Actually logic/emi.js calculates years. Let's adjust it. 
@@ -655,16 +657,29 @@ const NewAssignment = ({ machines, customers, user }) => {
                   </div>
                 </div>
               </div>
-              <div className="border-l border-border-main pl-8">
-                <p className="text-[10px] font-bold text-text-dim mb-1 uppercase tracking-tighter">Interest Rate (% p.a.)</p>
-                <input
-                  type="number"
-                  step="0.1"
-                  disabled={!isMachineSelected}
-                  value={formData.interestRate}
-                  onChange={e => setFormData({ ...formData, interestRate: e.target.value.replace(/^0+(?=\d)/, '') })}
-                  className="w-full bg-transparent text-xl font-mono font-black text-text-main focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                />
+              <div className="grid grid-cols-2 gap-4 border-l border-border-main pl-8">
+                <div>
+                  <p className="text-[10px] font-bold text-text-dim mb-1 uppercase tracking-tighter">Finance Interest (% p.a.)</p>
+                  <input
+                    type="number"
+                    step="0.1"
+                    disabled={!isMachineSelected}
+                    value={formData.interestRate}
+                    onChange={e => setFormData({ ...formData, interestRate: e.target.value.replace(/^0+(?=\d)/, '') })}
+                    className="w-full bg-transparent text-xl font-mono font-black text-text-main focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+                <div className="border-l border-border-main pl-4">
+                  <p className="text-[10px] font-bold text-text-dim mb-1 uppercase tracking-tighter">Margin Interest (% p.a.)</p>
+                  <input
+                    type="number"
+                    step="0.1"
+                    disabled={!isMachineSelected}
+                    value={formData.marginInterestRate}
+                    onChange={e => setFormData({ ...formData, marginInterestRate: e.target.value.replace(/^0+(?=\d)/, '') })}
+                    className="w-full bg-transparent text-xl font-mono font-black text-text-main focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
               </div>
             </div>
 

@@ -26,7 +26,7 @@ export const calculateReducingEMI = (principal, annualRate, years) => {
 /**
  * Generate Repayment Schedule
  */
-export const generateSchedule = (principal, annualRate, years, type = 'reducing', startDate = new Date(), downPayment = 0, dpInstallments = 0) => {
+export const generateSchedule = (principal, annualRate, years, type = 'reducing', startDate = new Date(), downPayment = 0, dpInstallments = 0, marginAnnualRate = 0) => {
   const schedule = [];
   const totalMonths = years * 12;
   const emiMonths = totalMonths;
@@ -36,14 +36,20 @@ export const generateSchedule = (principal, annualRate, years, type = 'reducing'
   
   // Phase 1: Down Payment Installments
   if (downPayment > 0 && dpInstallments > 0) {
-    const dpEmi = Math.round(downPayment / dpInstallments);
-    let remainingDp = downPayment;
+    // Calculate flat interest on Margin Money over DP installment duration
+    const dpInterestTotal = Math.round(downPayment * (marginAnnualRate / 100) * (dpInstallments / 12));
+    const totalDpPayable = downPayment + dpInterestTotal;
+    const dpEmi = Math.round(totalDpPayable / dpInstallments);
+    let remainingDp = totalDpPayable;
     
     for (let i = 1; i <= dpInstallments; i++) {
-      let principalPayment = dpEmi;
-      if (i === dpInstallments) principalPayment = remainingDp; // Adjust last installment
+      let emiPayment = dpEmi;
+      if (i === dpInstallments) emiPayment = remainingDp; // Adjust last installment
       
-      remainingDp -= principalPayment;
+      const interestPayment = Math.round(dpInterestTotal / dpInstallments);
+      const principalPayment = emiPayment - interestPayment;
+      
+      remainingDp -= emiPayment;
       
       const dueDate = new Date(baseDate);
       dueDate.setMonth(dueDate.getMonth() + i);
@@ -52,10 +58,10 @@ export const generateSchedule = (principal, annualRate, years, type = 'reducing'
         installmentNo: currentInstallment++,
         type: 'DownPayment',
         dueDate: dueDate.toISOString().split('T')[0],
-        emi: principalPayment,
-        interest: 0,
+        emi: emiPayment,
+        interest: interestPayment,
         principal: principalPayment,
-        outstandingAmount: principalPayment,
+        outstandingAmount: emiPayment,
         balance: 0, // Not tracked the same way for DP
         status: 'Pending'
       });
