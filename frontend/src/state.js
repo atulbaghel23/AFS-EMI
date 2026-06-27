@@ -1,6 +1,6 @@
 // src/state.js
 
-const BASE_URL = import.meta.env.DEV ? 'http://localhost:5000/api' : (import.meta.env.VITE_API_URL || 'https://afs-emi.vercel.app/api');
+const BASE_URL = import.meta.env.DEV ? 'http://localhost:5000/api' : (import.meta.env.VITE_API_URL || 'https://afs-emi.onrender.com/api');
 import { lightenDarkenColor } from './utils';
 
 const INITIAL_STATE = {
