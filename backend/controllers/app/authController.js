@@ -216,3 +216,11 @@ export const forceResetPassword = async (req, res) => {
     res.status(500).json({ message: 'Failed to initialize password credentials', error: error.message });
   }
 };
+
+export const logout = async (req, res) => {
+  try {
+    res.json({ success: true, statusCode: 200, message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, statusCode: 500, message: 'Logout failed', error: error.message });
+  }
+};

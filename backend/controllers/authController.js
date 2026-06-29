@@ -218,3 +218,13 @@ export const forceResetPassword = async (req, res) => {
     res.status(500).json({ message: 'Failed to initialize password credentials', error: error.message });
   }
 };
+
+export const logout = async (req, res) => {
+  try {
+    // If a token blacklist is implemented in the future, it can be added here.
+    // For now, we simply respond with success to let the client clear the local storage.
+    res.json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Logout failed', error: error.message });
+  }
+};

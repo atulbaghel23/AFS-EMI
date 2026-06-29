@@ -1,9 +1,10 @@
 import express from 'express';
 const router = express.Router();
-import { login, register, forgotPassword, resetPassword, forceResetPassword } from '../../controllers/app/authController.js';
+import { login, register, forgotPassword, resetPassword, forceResetPassword, logout } from '../../controllers/app/authController.js';
 import { protect } from '../../middleware/authMiddleware.js';
 
 router.post('/login', login);
+router.post('/logout', logout);
 router.post('/register', register);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);

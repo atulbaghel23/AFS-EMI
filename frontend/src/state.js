@@ -459,7 +459,15 @@ class State {
     }
   }
 
-  logout() {
+  async logout() {
+    try {
+      await fetch(`${BASE_URL}/auth/logout`, {
+        method: 'POST',
+        headers: this.getHeaders()
+      });
+    } catch (err) {
+      console.error('Logout API call failed:', err);
+    }
     localStorage.removeItem('emi_user');
     this.setState({
       user: null,
