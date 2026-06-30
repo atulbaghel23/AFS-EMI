@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import BlacklistedToken from '../models/BlacklistedToken.js';
 
 export const protect = async (req, res, next) => {
   let token;
@@ -7,6 +8,11 @@ export const protect = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
+      
+      const isBlacklisted = await BlacklistedToken.findOne({ token });
+      if (isBlacklisted) {
+        return res.status(401).json({ message: 'Not authorized, token invalidated' });
+      }
       
       const isAppRoute = req.originalUrl.includes('/api/app/');
       const secret = isAppRoute 

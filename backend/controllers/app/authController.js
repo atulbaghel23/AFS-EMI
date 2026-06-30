@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import SystemConfig from '../../models/SystemConfig.js';
+import BlacklistedToken from '../../models/BlacklistedToken.js';
 
 const generateToken = (id) => {
   return jwt.sign({ id, source: 'app' }, process.env.JWT_SECRET_APP || process.env.JWT_SECRET, {
@@ -219,6 +220,19 @@ export const forceResetPassword = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (token) {
+      const isBlacklisted = await BlacklistedToken.findOne({ token });
+      if (isBlacklisted) {
+        return res.status(400).json({ success: false, statusCode: 400, message: 'Already logged out' });
+      }
+      await BlacklistedToken.create({ token });
+    }
+
     res.json({ success: true, statusCode: 200, message: 'Logged out successfully' });
   } catch (error) {
     res.status(500).json({ success: false, statusCode: 500, message: 'Logout failed', error: error.message });
