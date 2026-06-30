@@ -110,6 +110,24 @@ class State {
     if (this.data.isAuthenticated) {
       this.init();
     }
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.view) {
+        this.setState({ 
+          view: e.state.view, 
+          selectedCustomerId: e.state.selectedCustomerId || null,
+          selectedLoanId: e.state.selectedLoanId || null,
+          selectedCustomerContext: e.state.selectedCustomerContext || null,
+          _isBackNavigation: true 
+        });
+      }
+    });
+    if (this.data.view) {
+      window.history.replaceState({ 
+        view: this.data.view,
+        selectedCustomerId: this.data.selectedCustomerId || null,
+        selectedLoanId: this.data.selectedLoanId || null
+      }, '', window.location.pathname);
+    }
   }
 
   get apiUrl() {
@@ -298,10 +316,13 @@ class State {
     if ('payments' in newData) newData.payments = sanitize(newData.payments, 'payments');
 
     if (newData.view && newData.view !== this.data.view && !newData._isBackNavigation) {
-      const history = this.data.viewHistory || [];
-      if (history[history.length - 1] !== this.data.view) {
-        newData.viewHistory = [...history, this.data.view];
-      }
+      const stateToPush = {
+        view: newData.view,
+        selectedCustomerId: newData.selectedCustomerId !== undefined ? newData.selectedCustomerId : this.data.selectedCustomerId,
+        selectedLoanId: newData.selectedLoanId !== undefined ? newData.selectedLoanId : this.data.selectedLoanId,
+        selectedCustomerContext: newData.selectedCustomerContext !== undefined ? newData.selectedCustomerContext : this.data.selectedCustomerContext
+      };
+      window.history.pushState(stateToPush, '', window.location.pathname);
     }
 
     this.data = { ...this.data, ...newData };
@@ -326,14 +347,14 @@ class State {
 
 
   goBack() {
-    const history = this.data.viewHistory || [];
-    if (history.length > 0) {
-      const newHistory = [...history];
-      const previousView = newHistory.pop();
-      this.setState({ view: previousView, viewHistory: newHistory, _isBackNavigation: true });
+    if (window.history.length > 1) {
+      window.history.back();
     } else {
-      const defaultView = this.data.user?.role === 'OEM' ? 'oem-dashboard' : (this.data.user?.role === 'SUPERVISOR' ? 'fmc-dashboard' : (this.data.user?.type?.toUpperCase() === 'FMC' ? 'fmc-dashboard' : 'customer-dashboard'));
-      this.setState({ view: defaultView });
+      const userTypes = Array.isArray(this.data.user?.type) ? this.data.user.type : [this.data.user?.type].filter(Boolean);
+      const isFMC = userTypes.some(t => t?.toUpperCase() === 'FMC');
+      const defaultView = this.data.user?.role === 'OEM' ? 'oem-dashboard' : (this.data.user?.role === 'SUPERVISOR' ? 'fmc-dashboard' : (isFMC ? 'fmc-dashboard' : 'customer-dashboard'));
+      this.setState({ view: defaultView, selectedCustomerId: null, selectedLoanId: null, _isBackNavigation: true });
+      window.history.replaceState({ view: defaultView }, '', window.location.pathname);
     }
   }
 
@@ -361,7 +382,7 @@ class State {
             ? 'oem-dashboard'
             : data.role === 'SUPERVISOR'
               ? 'fmc-dashboard'
-              : (data.type?.toUpperCase() === 'FMC' || data.fmcContracts?.some(c => c.customerId === data.customerId || c.customerName === data.name))
+              : ((Array.isArray(data.type) ? data.type.includes('FMC') : (Array.isArray(data.type) ? data.type.includes('FMC') : data.type?.toUpperCase() === 'FMC')) || data.fmcContracts?.some(c => c.customerId === data.customerId || c.customerName === data.name))
                 ? 'fmc-dashboard'
                 : 'customer-dashboard');
         this.setState({
@@ -440,11 +461,13 @@ class State {
           this.data.user.mustResetPassword = false;
           localStorage.setItem('emi_user', JSON.stringify(this.data.user));
         }
+        const userTypes = Array.isArray(this.data.user?.type) ? this.data.user.type : [this.data.user?.type].filter(Boolean);
+        const isFMC = userTypes.some(t => t?.toUpperCase() === 'FMC');
         const defaultView = this.data.user?.role === 'OEM'
           ? 'oem-dashboard'
           : this.data.user?.role === 'SUPERVISOR'
             ? 'fmc-dashboard'
-            : (this.data.user?.type?.toUpperCase() === 'FMC' ? 'fmc-dashboard' : 'customer-dashboard');
+            : (isFMC ? 'fmc-dashboard' : 'customer-dashboard');
         this.setState({
           user: this.data.user,
           view: defaultView
@@ -482,7 +505,7 @@ class State {
 
   async addCustomer(customer) {
     let payload = { ...customer, type: customer.type || 'EMI' };
-    if (payload.type === 'FMC') {
+    if ((Array.isArray(payload.type) ? payload.type.includes('FMC') : (Array.isArray(payload.type) ? payload.type.includes('FMC') : payload.type === 'FMC'))) {
       const namePart = (customer.name || '').replace(/\s+/g, '').substring(0, 4);
       const mobilePart = (customer.mobile || '').slice(-4);
       payload.password = namePart + mobilePart;
@@ -503,7 +526,7 @@ class State {
 
   async updateCustomer(id, customer) {
     let payload = { ...customer, type: customer.type || 'EMI' };
-    if (payload.type === 'FMC' && !payload.password) {
+    if ((Array.isArray(payload.type) ? payload.type.includes('FMC') : (Array.isArray(payload.type) ? payload.type.includes('FMC') : payload.type === 'FMC')) && !payload.password) {
       const namePart = (customer.name || '').replace(/\s+/g, '').substring(0, 4);
       const mobilePart = (customer.mobile || '').slice(-4);
       payload.password = namePart + mobilePart;

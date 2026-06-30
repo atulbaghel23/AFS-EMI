@@ -2,6 +2,8 @@ import Customer from '../../models/Customer.js';
 import User from '../../models/User.js';
 import SystemConfig from '../../models/SystemConfig.js';
 import { sendNotification } from '../../services/notificationService.js';
+import Loan from '../../models/Loan.js';
+import { FMCContract } from '../../models/FMC.js';
 
 export const getCustomers = async (req, res) => {
   try {
@@ -10,17 +12,89 @@ export const getCustomers = async (req, res) => {
       filter._id = req.user.customerId;
     }
     const customers = await Customer.find(filter).sort({ createdAt: -1 });
-    res.json(
-      {
-        success: true,
-        statusCode: 200,
-        message: "Data retrieved successfully",
-        data: { customers },
-        error: null
+    let userTypes = [];
+    if (req.user && req.user.type) {
+      if (Array.isArray(req.user.type)) {
+        userTypes = req.user.type.map(t => t.toLowerCase());
+      } else {
+        userTypes = [req.user.type.toLowerCase()];
       }
-    );
+    } else {
+      userTypes = ['emi'];
+    }
+
+    let visible_features = [];
+    let assets = {};
+
+    for (const t of userTypes) {
+      if (t === 'emi') {
+        visible_features.push('emi');
+        let emiAssets = [];
+        if (req.user && req.user.customerId) {
+          const loans = await Loan.find({ customerId: req.user.customerId });
+          emiAssets = loans.map(loan => {
+            let currentCycle = "0";
+            if (loan.schedule && loan.schedule.length > 0) {
+              const paidCount = loan.schedule.filter(s => s.status === 'Paid').length;
+              currentCycle = paidCount.toString().padStart(2, '0');
+            }
+            return {
+              id: loan._id.toString(),
+              brand: "LIUGONG",
+              name: loan.machineName || "Unknown",
+              category: loan.model || "EXCAVATOR",
+              price_label: loan.status === 'Active' ? "EMI ACTIVE" : loan.status,
+              current_cycle: currentCycle,
+              total_cycles: loan.tenure ? loan.tenure.toString() : "24",
+              status: loan.status || "Active",
+              status_color: loan.status === 'Active' ? "successGreen" : "actionBlue"
+            };
+          });
+        }
+        assets.emi = emiAssets;
+      } else if (t === 'fmc') {
+        visible_features.push('fmc');
+        let fmcAssets = [];
+        if (req.user && req.user.customerId) {
+          const contracts = await FMCContract.find({ customerId: req.user.customerId.toString() });
+          fmcAssets = contracts.map(c => ({
+            id: c._id.toString(),
+            brand: "LIUGONG",
+            name: c.machines && c.machines.length > 0 ? c.machines.join(', ') : "FMC Machine",
+            category: "MAINTENANCE",
+            price_label: c.fixedMonthlyCharge ? `₹${c.fixedMonthlyCharge}/Mo` : "FMC Active",
+            current_cycle: "0",
+            total_cycles: c.billingCycle || "Monthly",
+            status: c.status || "Active",
+            status_color: c.status === 'Active' ? "successGreen" : "actionBlue"
+          }));
+        }
+        assets.fmc = fmcAssets;
+      } else if (t === 'rental') {
+        visible_features.push('rental');
+        assets.rental = [];
+      } else if (t === 'finance') {
+        visible_features.push('finance');
+        assets.finance = [];
+      } else {
+        if (!visible_features.includes(t)) visible_features.push(t);
+        assets[t] = [];
+      }
+    }
+
+    res.json({
+      success: true,
+      statusCode: 200,
+      message: "Assets fetched successfully",
+      data: {
+        customers,
+        visible_features,
+        assets
+      },
+      error: null
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

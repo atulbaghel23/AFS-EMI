@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
   roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Role' }, // Fine-grained RBAC
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }, // Only for CUSTOMER role
   supervisorId: { type: mongoose.Schema.Types.ObjectId, ref: 'FMCSupervisor' }, // Only for SUPERVISOR role
-  type: { type: String }, // For CUSTOMER role: EMI, Rental, or FMC
+  type: { type: [String] }, // For CUSTOMER role: EMI, Rental, or FMC
   status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
   settings: {
     fontFamily: { type: String, default: 'Inter' },

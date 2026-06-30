@@ -213,14 +213,14 @@ const FMCCustomerDashboard = () => {
 
 const Dashboard = () => {
   // const { user, fmcContracts } = state.data;
-  // const isFMC = user?.type?.toUpperCase() === 'FMC' || fmcContracts.some(c =>
+  // const isFMC = (Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) || fmcContracts.some(c =>
   //   (c.customerId && user?.customerId && c.customerId.toString() === user.customerId.toString()) ||
   //   (c.customerName === user?.name)
   // );
 
   // if (isFMC) return <FMCCustomerDashboard />;
   const { user, fmcContracts } = state.data;
-  const isFMC = user?.type?.toUpperCase() === 'FMC' || fmcContracts.some(c =>
+  const isFMC = (Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) || fmcContracts.some(c =>
     (c.customerId && user?.customerId && c.customerId.toString() === user.customerId.toString()) ||
     (c.customerName === user?.name)
   );

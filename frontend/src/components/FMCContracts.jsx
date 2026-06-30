@@ -122,7 +122,7 @@ const ContractFormModal = ({ contract, onClose }) => {
                     }}
                   >
                     <option value="">-- Select Onboarded Client --</option>
-                    {customers.filter(c => c.type === 'FMC').map(c => (
+                    {customers.filter(c => (Array.isArray(c.type) ? c.type.includes('FMC') : (Array.isArray(c.type) ? c.type.includes('FMC') : c.type === 'FMC'))).map(c => (
                       <option key={c._id} value={c._id}>{c.name} ({c.mobile})</option>
                     ))}
                   </Select>

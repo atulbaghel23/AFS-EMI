@@ -15,7 +15,7 @@ const customerSchema = new mongoose.Schema({
   bankAcc: String,
   ifsc: String,
   company: String,
-  type: { type: String, default: 'EMI' },
+  type: { type: [String], default: ['EMI'] },
   password: { type: String }
 }, { timestamps: true });
 

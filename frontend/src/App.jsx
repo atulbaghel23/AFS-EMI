@@ -106,8 +106,8 @@ const App = () => {
         return <MachineManagement />;
       case 'new-financing':
       case 'financed-machines':
-        if (user?.type?.toUpperCase() === 'FMC' && user?.role !== 'OEM') return <AccessDenied />;
-        if (user?.type?.toUpperCase() === 'FMC' && user?.role !== 'OEM') return <AccessDenied />;
+        if ((Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) && user?.role !== 'OEM') return <AccessDenied />;
+        if ((Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) && user?.role !== 'OEM') return <AccessDenied />;
         if (!hasPermission(user, 'financing', 'read')) return <AccessDenied />;
         return <LoanAssignment />;
       case 'financing-pipeline':
@@ -123,8 +123,8 @@ const App = () => {
         if (!hasPermission(user, 'customers', 'read')) return <AccessDenied />;
         return <CustomerAnalytics />;
       case 'loan-details':
-        if (user?.type?.toUpperCase() === 'FMC' && user?.role !== 'OEM') return <AccessDenied />;
-        if (user?.type?.toUpperCase() === 'FMC' && user?.role !== 'OEM') return <AccessDenied />;
+        if ((Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) && user?.role !== 'OEM') return <AccessDenied />;
+        if ((Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) && user?.role !== 'OEM') return <AccessDenied />;
         if (!hasPermission(user, 'financing', 'read')) return <AccessDenied />;
         return <LoanDetails />;
       case 'employees':
@@ -139,7 +139,7 @@ const App = () => {
         return <ApprovalFlowSettings />;
       case 'fmc-tickets': {
         const ticketCustId = (user?.customerId?._id || user?.customerId)?.toString();
-        const isTicketFMC = user?.type?.toUpperCase() === 'FMC' || (state.data.fmcContracts || []).some(c =>
+        const isTicketFMC = (Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) || (state.data.fmcContracts || []).some(c =>
           (c.customerId && ticketCustId && (c.customerId?._id || c.customerId).toString() === ticketCustId) ||
           (c.customerName === user?.name)
         );
@@ -154,7 +154,7 @@ const App = () => {
       case 'fmc-billing':
       case 'fmc-invoices': {
         const userCustId = (user?.customerId?._id || user?.customerId)?.toString();
-        const isFMC = user?.type?.toUpperCase() === 'FMC' || (state.data.fmcContracts || []).some(c =>
+        const isFMC = (Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) || (state.data.fmcContracts || []).some(c =>
           (c.customerId && userCustId && (c.customerId?._id || c.customerId).toString() === userCustId) ||
           (c.customerName === user?.name)
         );

@@ -493,7 +493,7 @@ const NewAssignment = ({ machines, customers, user }) => {
                 label="Client"
                 selected={customers.find(c => c._id === formData.customerId)?.name || "Select Client..."}
                 onSelect={(val) => setFormData({ ...formData, customerId: customers.find(c => c.name === val)?._id })}
-                options={customers.filter(c => c.type === (formData.financingType || 'EMI')).map(c => c.name)}
+                options={customers.filter(c => (Array.isArray(c.type) ? c.type.includes(formData.financingType || 'EMI') : (Array.isArray(c.type) ? c.type.includes(formData.financingType || 'EMI') : c.type === (formData.financingType || 'EMI')))).map(c => c.name)}
               />
               <SearchableDropdown
                 label="Equipment Model"

@@ -210,6 +210,7 @@ const CustomerManagement = () => {
   const filtered = (customers || []).filter((c) => {
     if (!c) return false;
     let typeMatch = false;
+<<<<<<< Updated upstream
     const cType = (c.type || "EMI").toUpperCase();
     if (filterType === "EMI") {
       typeMatch = cType === "EMI" || cType === "EMI/RENTALS";
@@ -217,6 +218,15 @@ const CustomerManagement = () => {
       typeMatch = cType === "RENTAL" || cType === "RENTALS";
     } else if (filterType === "FMC") {
       typeMatch = cType === "FMC";
+=======
+    const cTypeArray = Array.isArray(c.type) ? c.type : (c.type ? [c.type] : ['EMI']);
+    if (filterType === 'EMI') {
+      typeMatch = cTypeArray.includes('EMI') || cTypeArray.includes('EMI/Rentals');
+    } else if (filterType === 'Rental') {
+      typeMatch = cTypeArray.includes('Rental') || cTypeArray.includes('Rentals');
+    } else if (filterType === 'FMC') {
+      typeMatch = cTypeArray.includes('FMC');
+>>>>>>> Stashed changes
     }
     const searchLower = (search || "").toLowerCase();
     const name = (c.name || "").toString().toLowerCase();
@@ -286,8 +296,14 @@ const CustomerManagement = () => {
 
   const handleViewAnalytics = (customer) => {
     state.setState({
+<<<<<<< Updated upstream
       view: "customer-analytics",
       selectedCustomerId: customer._id,
+=======
+      view: 'customer-analytics',
+      selectedCustomerId: customer._id,
+      selectedCustomerContext: filterType
+>>>>>>> Stashed changes
     });
   };
 
@@ -684,6 +700,7 @@ const CustomerManagement = () => {
                             {c.name || "Unknown"}
                           </span>
                         </div>
+<<<<<<< Updated upstream
                       </td>
                     )}
                     {localColConfig.customId && (
@@ -800,6 +817,51 @@ const CustomerManagement = () => {
                   </tr>
                 ))
               )}
+=======
+                        <span className="font-black text-text-main text-[11px] tracking-tight group-hover:text-[#f0883e] transition-colors whitespace-nowrap">{c.name || 'Unknown'}</span>
+                      </div>
+                    </td>
+                  )}
+                  {localColConfig.customId && <td className="px-6 py-4 text-[10px] font-mono font-bold text-text-dim uppercase whitespace-nowrap">{c.customId || 'N/A'}</td>}
+                  {localColConfig.mobile && <td className="px-6 py-4 text-[10px] font-mono font-bold text-text-dim whitespace-nowrap">{c.mobile || 'N/A'}</td>}
+                  {localColConfig.email && <td className="px-6 py-4 text-[10px] font-mono font-bold text-text-dim whitespace-nowrap">{c.email || 'N/A'}</td>}
+                  {localColConfig.gst && <td className="px-6 py-4 text-[10px] font-mono font-bold text-[#58a6ff] whitespace-nowrap">{c.gst || 'N/A'}</td>}
+                  {localColConfig.pan && <td className="px-6 py-4 text-[10px] font-mono font-bold text-[#f0883e] whitespace-nowrap">{c.pan || 'N/A'}</td>}
+                  {localColConfig.bankAcc && <td className="px-6 py-4 text-[10px] font-mono font-bold text-text-dim whitespace-nowrap">{c.bankAcc || 'N/A'}</td>}
+                  {localColConfig.ifsc && <td className="px-6 py-4 text-[10px] font-mono font-bold text-text-dim uppercase whitespace-nowrap">{c.ifsc || 'N/A'}</td>}
+                  {localColConfig.status && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-1 h-1 rounded-full ${c.status === 'Active' ? 'bg-[#3fb950] shadow-[0_0_8px_#3fb950]' : 'bg-red-500 shadow-[0_0_8px_#ef4444]'}`} />
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${c.status === 'Active' ? 'text-[#3fb950]' : 'text-red-500'}`}>{c.status}</span>
+                      </div>
+                    </td>
+                  )}
+                  {localColConfig.type && <td className="px-6 py-4 text-[9px] font-black text-text-dim uppercase whitespace-nowrap">{Array.isArray(c.type) ? c.type.join(', ') : c.type}</td>}
+                  {localColConfig.city && <td className="px-6 py-4 text-[9px] font-bold text-text-dim uppercase whitespace-nowrap">{c.city || 'N/A'}</td>}
+                  {localColConfig.pin && <td className="px-6 py-4 text-[9px] font-mono text-text-dim whitespace-nowrap">{c.pin || 'N/A'}</td>}
+                  {localColConfig.address && <td className="px-6 py-4 text-[9px] font-bold text-text-dim truncate max-w-[150px] whitespace-nowrap">{c.address || 'N/A'}</td>}
+                  {localColConfig.overdue && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-[10px] font-mono font-bold text-red-500">
+                        {formatINR((state.data.loans || []).filter(l => (l.customerId?._id || l.customerId) === c._id && l.approvalStatus === 'Active').reduce((sum, l) => {
+                          const ovd = (l.schedule || []).filter(s => s.status === 'Pending' && new Date(s.dueDate) < new Date());
+                          return sum + ovd.reduce((s, inst) => s + inst.emi, 0);
+                        }, 0))}
+                      </span>
+                    </td>
+                  )}
+                  {localColConfig.control && (
+                    <td className="px-6 py-4 text-right sticky right-0 bg-bg-card/95 backdrop-blur-md z-[30]">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={(e) => handleEditCustomer(c, e)} className="p-1.5 text-text-dim hover:text-[#f0883e] transition-all"><Edit3 size={14} /></button>
+                        <button onClick={(e) => handleDeleteCustomer(c._id, e)} className="p-1.5 text-text-dim hover:text-red-500 transition-all"><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+>>>>>>> Stashed changes
             </tbody>
           </table>
         </div>
@@ -1099,10 +1161,20 @@ const CustomerFormModal = ({ isOpen, onClose, customer }) => {
             <div className="flex p-1 bg-bg-deep border border-border-main rounded-xl h-[34px]">
               {["EMI", "Rental", "FMC"].map((type) => (
                 <button
+<<<<<<< Updated upstream
                   key={type}
                   type="button"
                   onClick={() => setFormData({ ...formData, type })}
                   className={`flex-1 text-[8px] font-black uppercase tracking-tighter rounded-lg transition-all ${formData.type === type ? "bg-[#f0883e] text-black shadow-lg" : "text-text-dim hover:text-text-main"}`}
+=======
+                  key={type} type="button" 
+                  onClick={() => {
+                    const currentTypes = Array.isArray(formData.type) ? formData.type : (formData.type ? [formData.type] : []);
+                    const newTypes = currentTypes.includes(type) ? currentTypes.filter(t => t !== type) : [...currentTypes, type];
+                    setFormData({ ...formData, type: newTypes });
+                  }}
+                  className={`flex-1 text-[8px] font-black uppercase tracking-tighter rounded-lg transition-all ${(Array.isArray(formData.type) ? formData.type.includes(type) : formData.type === type) ? 'bg-[#f0883e] text-black shadow-lg' : 'text-text-dim hover:text-text-main'}`}
+>>>>>>> Stashed changes
                 >
                   {type}
                 </button>

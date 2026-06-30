@@ -160,7 +160,7 @@ const Sidebar = () => {
   const userCustId = (user?.customerId?._id || user?.customerId)?.toString();
 
   const isFMC =
-    user?.type?.toUpperCase() === "FMC" ||
+    (Array.isArray(user?.type) ? user.type.includes('FMC') : (Array.isArray(user?.type) ? user.type.includes('FMC') : user?.type?.toUpperCase() === 'FMC')) ||
     fmcContracts.some(
       (c) =>
         (c.customerId &&

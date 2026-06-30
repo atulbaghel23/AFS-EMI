@@ -358,7 +358,7 @@ const CustomerAnalytics = () => {
   const [selectedAsset, setSelectedAsset] = useState('ALL MACHINES');
   const [chartType, setChartType] = useState('bar');
   const [activeTab, setActiveTab] = useState('ledger');
-  const { loans, machines, selectedCustomerId, customers, payments = [] } = state.data;
+  const { loans, machines, selectedCustomerId, customers, payments = [], selectedCustomerContext } = state.data;
 
   const customer = customers.find(c => c._id === selectedCustomerId);
 
@@ -655,7 +655,31 @@ const CustomerAnalytics = () => {
     </div>
   );
 
-  if (customer.type === 'FMC') return <FMCCustomerAnalytics customer={customer} />;
+  const activeContext = selectedCustomerContext || (Array.isArray(customer.type) ? customer.type[0] : customer.type) || 'EMI';
+
+  if (activeContext === 'FMC' || (!customer?.type?.includes('EMI') && customer?.type?.includes('FMC'))) return <FMCCustomerAnalytics customer={customer} />;
+
+  if (activeContext === 'Rental' || (!customer?.type?.includes('EMI') && customer?.type?.includes('Rental'))) return (
+    <div className="h-full bg-bg-deep text-text-main p-4 flex flex-col overflow-hidden animate-in fade-in duration-500">
+      <header className="flex items-center mb-6 shrink-0">
+        <button
+          onClick={() => { state.setState({ selectedCustomerId: null }); state.goBack(); }}
+          className="w-9 h-9 bg-bg-card border border-border-main rounded-xl flex items-center justify-center text-text-dim hover:text-text-main transition-all hover:border-primary/50 shadow-lg"
+        >
+          <ArrowLeft size={18} />
+        </button>
+      </header>
+      <div className="flex-1 flex flex-col items-center justify-center opacity-30 text-center space-y-4">
+        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center animate-pulse">
+          <Activity size={32} />
+        </div>
+        <div>
+          <p className="text-sm font-black text-white uppercase tracking-widest">Rental Fleet Analytics</p>
+          <p className="text-[10px] text-slate-500 font-mono uppercase mt-1">This analytical module is currently under strategic construction.</p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="h-full bg-bg-deep text-text-main p-4 flex flex-col overflow-hidden animate-in fade-in duration-500">
