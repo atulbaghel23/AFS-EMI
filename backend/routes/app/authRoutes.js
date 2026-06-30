@@ -4,7 +4,7 @@ import { login, register, forgotPassword, resetPassword, forceResetPassword, log
 import { protect } from '../../middleware/authMiddleware.js';
 
 router.post('/login', login);
-router.post('/logout', logout);
+router.post('/logout', protect, logout);
 router.post('/register', register);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);

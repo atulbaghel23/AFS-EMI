@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import SystemConfig from '../models/SystemConfig.js';
+import BlacklistedToken from '../models/BlacklistedToken.js';
 
 const generateToken = (id) => {
   return jwt.sign({ id, source: 'web' }, process.env.JWT_SECRET_WEB || process.env.JWT_SECRET, {
@@ -221,8 +222,19 @@ export const forceResetPassword = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    // If a token blacklist is implemented in the future, it can be added here.
-    // For now, we simply respond with success to let the client clear the local storage.
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    
+    if (token) {
+      const isBlacklisted = await BlacklistedToken.findOne({ token });
+      if (isBlacklisted) {
+        return res.status(400).json({ success: false, message: 'Already logged out' });
+      }
+      await BlacklistedToken.create({ token });
+    }
+
     res.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Logout failed', error: error.message });
