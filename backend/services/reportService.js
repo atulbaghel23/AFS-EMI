@@ -37,9 +37,9 @@ export const generateExcelReport = async (loan) => {
   headerRowObj.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE4D6' } };
 
   // Data
-  loan.schedule.forEach(s => {
+  loan.schedule.forEach((s, index) => {
     worksheet.addRow([
-      s.installment || s.installmentNo,
+      s.installment || s.installmentNo || (index + 1),
       s.type === 'DownPayment' ? 'MARGIN MONEY' : 'EMI',
       s.dueDate,
       s.paidDate ? new Date(s.paidDate).toISOString().split('T')[0] : '--',

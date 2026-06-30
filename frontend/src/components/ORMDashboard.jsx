@@ -176,6 +176,7 @@ const ORMDashboard = () => {
   const [viewMode, setViewMode] = usePersistentState('orm_view_mode', 'machine');
   const [selectedAssets, setSelectedAssets] = usePersistentState('orm_selected_assets', ['ALL MACHINES']);
   const [selectedCustomers, setSelectedCustomers] = usePersistentState('orm_selected_customers', ['ALL CUSTOMERS']);
+  const [selectedMachine, setSelectedMachine] = useState(null); // for machine drill-down
   const [storedDateRange, setDateRange] = usePersistentState('orm_date_range', {
     start: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -309,6 +310,27 @@ const ORMDashboard = () => {
     return { month: m.month, opening, due: monthlyDue, received: monthlyReceived, overdue, closing, progress };
   });
 
+  // Machine-specific monthly drill-down data
+  const machineDrillMonthlyData = (() => {
+    if (!selectedMachine) return [];
+    const loan = selectedMachine;
+    const loanPayments = payments.filter(p => {
+      const loanIdStr = (p.loanId?._id || p.loanId)?.toString();
+      return loanIdStr === loan._id;
+    });
+    let rb2 = (loan.schedule || []).filter(s => new Date(s.dueDate) < (reportMonths[0]?.start || new Date()) && s.status === 'Pending').reduce((s, inst) => s + inst.emi, 0);
+    return reportMonths.map(m => {
+      const opening = rb2;
+      const monthlyDue = (loan.schedule || []).filter(s => { const d = new Date(s.dueDate); return d >= m.start && d <= m.end; }).reduce((s, inst) => s + inst.emi, 0);
+      const monthlyReceived = loanPayments.filter(p => { try { const d = new Date(p.date); return d >= m.start && d <= m.end; } catch(e) { return false; } }).reduce((sum, p) => sum + (p.amount || 0), 0);
+      const overdue = Math.max(0, opening + monthlyDue - monthlyReceived);
+      const closing = overdue;
+      const progress = (opening + monthlyDue) > 0 ? Math.min(100, Math.round((monthlyReceived / (opening + monthlyDue)) * 100)) : 'NA';
+      rb2 = closing;
+      return { month: m.month, opening, due: monthlyDue, received: monthlyReceived, overdue, closing, progress };
+    });
+  })();
+
   return (
     <div className="h-full flex flex-col gap-6 animate-slide-up pb-10">
       <div className="flex items-center justify-between shrink-0">
@@ -354,7 +376,7 @@ const ORMDashboard = () => {
               Machine Centric
             </button>
             <button
-              onClick={() => setViewMode('customer')}
+              onClick={() => { setViewMode('customer'); setSelectedMachine(null); }}
               className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-all ${viewMode === 'customer' ? 'bg-primary text-black shadow-sm' : 'text-text-dim hover:text-text-main'}`}
             >
               Customer Centric
@@ -410,9 +432,26 @@ const ORMDashboard = () => {
             <div className="col-span-8 flex flex-col gap-4 overflow-hidden">
               <div className="flex-1 bg-bg-card border border-border-main rounded-2xl overflow-hidden flex flex-col shadow-xl">
                 <div className="px-6 py-4 border-b border-border-main bg-bg-active/50 flex items-center justify-between">
-                  <h3 className="text-[10px] font-black text-text-dim uppercase tracking-[0.2em] flex items-center gap-2">
-                    <FileText size={14} className="text-primary" /> {viewMode === 'customer' ? 'CUSTOMER PORTFOLIO LEDGER' : 'MONTHLY RECOVERY PROTOCOL LEDGER'}
-                  </h3>
+                  {viewMode === 'machine' && selectedMachine ? (
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setSelectedMachine(null)}
+                        className="flex items-center gap-1.5 text-[9px] font-black text-text-dim hover:text-primary transition-colors uppercase tracking-widest group"
+                      >
+                        <ChevronRight size={12} className="rotate-180 group-hover:-translate-x-0.5 transition-transform" />
+                        ALL MACHINES
+                      </button>
+                      <span className="text-text-dim/40 text-[10px]">/</span>
+                      <span className="text-[10px] font-black text-primary uppercase tracking-widest truncate max-w-[280px]">
+                        {getLoanLabel(selectedMachine)}
+                      </span>
+                      <span className="ml-2 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[8px] font-black text-primary uppercase tracking-widest">Monthly Ledger</span>
+                    </div>
+                  ) : (
+                    <h3 className="text-[10px] font-black text-text-dim uppercase tracking-[0.2em] flex items-center gap-2">
+                      <FileText size={14} className="text-primary" /> {viewMode === 'customer' ? 'CUSTOMER PORTFOLIO LEDGER' : 'MACHINE PORTFOLIO LEDGER'}
+                    </h3>
+                  )}
                   <div className="flex items-center gap-4 text-[8px] font-bold text-text-dim uppercase tracking-widest">
                     <span>SYNCED: {new Date().toLocaleDateString()}</span>
                     <span>UNIT: INR</span>
@@ -432,7 +471,7 @@ const ORMDashboard = () => {
                             <th className="px-6 py-5 text-red-500">Overdue</th>
                             <th className="px-6 py-5 text-right">Collection %</th>
                           </>
-                        ) : (
+                        ) : selectedMachine ? (
                           <>
                             <th className="px-6 py-5">Month</th>
                             <th className="px-6 py-5">Openings</th>
@@ -440,6 +479,15 @@ const ORMDashboard = () => {
                             <th className="px-6 py-5 text-green-600">Received</th>
                             <th className="px-6 py-5 text-red-500">Overdue</th>
                             <th className="px-6 py-5">Closing</th>
+                            <th className="px-6 py-5 text-right">Collection %</th>
+                          </>
+                        ) : (
+                          <>
+                            <th className="px-6 py-5">Machine</th>
+                            <th className="px-6 py-5">Total Expected</th>
+                            <th className="px-6 py-5">Remaining</th>
+                            <th className="px-6 py-5 text-green-600">Collected</th>
+                            <th className="px-6 py-5 text-red-500">Overdue</th>
                             <th className="px-6 py-5 text-right">Collection %</th>
                           </>
                         )}
@@ -506,25 +554,92 @@ const ORMDashboard = () => {
                             );
                           });
                         })()
-                      ) : (
-                        monthlyData.map((row, i) => (
-                          <tr key={i} className="hover:bg-bg-active transition-colors group">
-                            <td className="px-6 py-5 text-[11px] font-black text-text-main">{row.month}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(row.opening)}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(row.due)}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono font-bold text-green-600">{formatINR(row.received)}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono font-bold text-red-500">{formatINR(row.overdue)}</td>
-                            <td className="px-6 py-5 text-[11px] font-mono text-text-main">{formatINR(row.closing)}</td>
-                            <td className="px-6 py-5 text-right">
-                              <div className="flex items-center justify-end gap-3">
-                                <div className="w-16 h-1 bg-bg-deep rounded-full overflow-hidden border border-border-main">
-                                  <div className={`h-full ${row.progress !== 'NA' && row.progress > 50 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${row.progress === 'NA' ? 0 : row.progress}%` }} />
-                                </div>
-                                <span className="text-[10px] font-mono font-bold text-text-main">{row.progress === 'NA' ? 'NA' : `${row.progress}%`}</span>
-                              </div>
+                      ) : selectedMachine ? (
+                        /* ── Drill-Down: Monthly ledger for selected machine ── */
+                        machineDrillMonthlyData.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-16 text-center text-[10px] font-mono text-text-dim italic">
+                              No monthly data available for the selected date range.
                             </td>
                           </tr>
-                        ))
+                        ) : (
+                          machineDrillMonthlyData.map((row, i) => (
+                            <tr key={i} className={`transition-colors group ${row.received > 0 ? 'hover:bg-green-500/5' : 'hover:bg-bg-active'}`}>
+                              <td className="px-6 py-5">
+                                <span className="text-[11px] font-black text-text-main">{row.month}</span>
+                              </td>
+                              <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(row.opening)}</td>
+                              <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(row.due)}</td>
+                              <td className="px-6 py-5">
+                                <span className={`text-[11px] font-mono font-bold ${row.received > 0 ? 'text-green-500' : 'text-text-dim'}`}>
+                                  {formatINR(row.received)}
+                                </span>
+                              </td>
+                              <td className="px-6 py-5">
+                                <span className={`text-[11px] font-mono font-bold ${row.overdue > 0 ? 'text-red-500' : 'text-text-dim'}`}>
+                                  {formatINR(row.overdue)}
+                                </span>
+                              </td>
+                              <td className="px-6 py-5 text-[11px] font-mono text-text-main">{formatINR(row.closing)}</td>
+                              <td className="px-6 py-5 text-right">
+                                <div className="flex items-center justify-end gap-3">
+                                  <div className="w-20 h-1.5 bg-bg-deep rounded-full overflow-hidden border border-border-main">
+                                    <div
+                                      className={`h-full rounded-full transition-all duration-500 ${row.progress === 'NA' ? 'bg-text-dim/30' : row.progress > 75 ? 'bg-green-500' : row.progress > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                      style={{ width: `${row.progress === 'NA' ? 0 : row.progress}%` }}
+                                    />
+                                  </div>
+                                  <span className={`text-[10px] font-mono font-black w-8 text-right ${row.progress === 'NA' ? 'text-text-dim' : row.progress > 75 ? 'text-green-500' : row.progress > 40 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                    {row.progress === 'NA' ? 'NA' : `${row.progress}%`}
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )
+                      ) : (
+                        /* ── Level 1: Machine Portfolio List ── */
+                        filteredLoans.map((l, i) => {
+                          const remaining = (l.schedule || []).filter(s => s.status === 'Pending').reduce((s, inst) => s + (inst.outstandingAmount !== undefined ? inst.outstandingAmount : inst.emi), 0);
+                          const collected = (l.schedule || []).reduce((sum, s) => {
+                            const principalPaid = s.paidAmount !== undefined && s.paidAmount > 0
+                              ? s.paidAmount
+                              : ((s.emi || 0) - (s.outstandingAmount !== undefined ? s.outstandingAmount : (s.status === 'Clear' || s.status === 'Paid' ? 0 : (s.emi || 0))));
+                            return sum + principalPaid + (s.paidOverdueInterest || 0);
+                          }, 0);
+                          const overdue = (l.schedule || []).filter(s => s.status === 'Pending' && new Date(s.dueDate) < new Date()).reduce((s, inst) => s + (inst.outstandingAmount !== undefined ? inst.outstandingAmount : inst.emi), 0);
+
+                          const expectedTotal = collected + remaining;
+                          let collPercent = expectedTotal > 0 ? Math.round((collected / expectedTotal) * 100) : 0;
+                          if (remaining > 0 && collPercent >= 100) collPercent = 99;
+
+                          return (
+                            <tr key={l._id || i} onClick={() => setSelectedMachine(l)} className="hover:bg-bg-active transition-colors group cursor-pointer">
+                              <td className="px-6 py-5">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                                  <div>
+                                    <div className="text-[11px] font-black text-text-main leading-snug">{l.machineName}</div>
+                                    <div className="text-[9px] font-mono text-text-dim">{l.invoiceNumber || `#${l._id.toString().slice(-4)}`}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(expectedTotal)}</td>
+                              <td className="px-6 py-5 text-[11px] font-mono text-text-dim">{formatINR(remaining)}</td>
+                              <td className="px-6 py-5 text-[11px] font-mono font-bold text-green-600">{formatINR(collected)}</td>
+                              <td className="px-6 py-5 text-[11px] font-mono font-bold text-red-500">{overdue > 0 ? formatINR(overdue) : <span className="text-text-dim/40">—</span>}</td>
+                              <td className="px-6 py-5 text-right">
+                                <div className="flex items-center justify-end gap-3">
+                                  <div className="w-16 h-1 bg-bg-deep rounded-full overflow-hidden border border-border-main">
+                                    <div className={`h-full ${collPercent > 50 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${Math.min(100, collPercent)}%` }} />
+                                  </div>
+                                  <span className="text-[10px] font-mono font-bold text-text-main">{collPercent}%</span>
+                                  <ChevronRight size={12} className="text-text-dim/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
