@@ -4,7 +4,6 @@ import { generateReceiptPDF } from '../../services/pdfService.js';
 import { generateAgreementPDF } from '../../services/pdfService.js';
 import { generateExcelReport, generatePPTReport, generatePDFReport } from '../../services/reportService.js';
 
-import { calculateOverdueInterest } from '../../utils/interestCalculator.js';
 import Machine from '../../models/Machine.js';
 export const getLoans = async (req, res) => {
   try {
@@ -13,29 +12,45 @@ export const getLoans = async (req, res) => {
       filter.customerId = req.user.customerId;
     }
 
-    const loans = await Loan.find(filter).populate('customerId').populate('approvalFlowId').sort({ createdAt: -1 });
+    const loans = await Loan.find(filter).sort({ createdAt: -1 });
 
     // Fetch machines to map their details (images, specs, etc.) to the respective loans
     const machines = await Machine.find().lean();
 
-    // Dynamically calculate overdue interest and attach machine details for all loans
-    const updatedLoans = loans.map(loan => {
-      let loanObj = loan.toObject ? loan.toObject() : loan;
-      loanObj = calculateOverdueInterest(loanObj);
+    // Map to simplified objects containing only machine details
+    const data = loans.map(loan => {
+      // Find the matched machine in the catalog
+      const matchedMachine = machines.find(m => m.name === loan.machineName && m.model === loan.model)
+        || machines.find(m => m.name === loan.machineName)
+        || machines.find(m => loan.machineName && m.name && loan.machineName.toLowerCase().includes(m.name.toLowerCase()));
 
-      // Try to find by exact name and model, fallback to just name, fallback to contains name
-      const matchedMachine = machines.find(m => m.name === loanObj.machineName && m.model === loanObj.model)
-        || machines.find(m => m.name === loanObj.machineName)
-        || machines.find(m => loanObj.machineName && m.name && loanObj.machineName.toLowerCase().includes(m.name.toLowerCase()));
-      
-      loanObj.machineDetails = matchedMachine || null;
-      return loanObj;
+      return {
+        _id: loan._id,
+        machineName: loan.machineName,
+        model: loan.model,
+        serialNumber: loan.serialNumber,
+        invoiceData: loan.invoiceData,
+        status: loan.status,
+        approvalStatus: loan.approvalStatus,
+        machineDetails: matchedMachine ? {
+          _id: matchedMachine._id,
+          name: matchedMachine.name,
+          model: matchedMachine.model,
+          category: matchedMachine.category,
+          brand: matchedMachine.brand,
+          images: matchedMachine.images,
+          img: matchedMachine.img,
+          specs: matchedMachine.specs,
+          pricing: matchedMachine.pricing
+        } : null
+      };
     });
+
     res.status(200).json({
       success: true,
       statusCode: 200,
       message: "Data retrieved successfully",
-      data: updatedLoans,
+      data,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
