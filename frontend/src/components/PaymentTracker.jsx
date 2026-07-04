@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { state } from '../state';
 import { formatINR, showNotification } from '../utils';
-import { Download, Upload, Loader2, ChevronRight, Check } from 'lucide-react';
+import { Download, Upload, Loader2, ChevronRight, Check, X } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
@@ -133,7 +133,7 @@ const PaymentTracker = () => {
     formData.append('file', file);
 
     try {
-      const res = await fetch('https://afs-emi.vercel.app/api/payments/bulk-upload/validate', {
+      const res = await fetch(`${state.apiUrl}/payments/bulk-upload/validate`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${user?.token}` },
         body: formData
@@ -158,7 +158,7 @@ const PaymentTracker = () => {
     formData.append('file', bulkFile);
 
     try {
-      const res = await fetch('https://afs-emi.vercel.app/api/payments/bulk-upload/import', {
+      const res = await fetch(`${state.apiUrl}/payments/bulk-upload/import`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${user?.token}` },
         body: formData
@@ -179,7 +179,7 @@ const PaymentTracker = () => {
 
   const handleDownloadError = () => {
     if (!bulkLogId) return;
-    window.location.href = `https://afs-emi.vercel.app/api/payments/bulk-upload/errors/${bulkLogId}?token=${user?.token}`;
+    window.location.href = `${state.apiUrl}/payments/bulk-upload/errors/${bulkLogId}?token=${user?.token}`;
   };
 
   const resetBulkModal = () => {
@@ -547,6 +547,26 @@ const PaymentTracker = () => {
                   <button onClick={resetBulkModal} className="px-6 py-2 bg-bg-active text-white border border-border-main text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#30363d] transition-all mt-4">
                     Close Terminal
                   </button>
+                </div>
+              )}
+
+              {bulkStatus === 'error' && (
+                <div className="py-8 space-y-6 text-center">
+                  <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <X size={24} className="text-rose-500" />
+                  </div>
+                  <h3 className="text-xl font-black text-rose-500 uppercase">Upload Failed</h3>
+                  <p className="text-[10px] text-text-dim uppercase tracking-widest max-w-md mx-auto">
+                    The Excel sheet verification or ledger import protocol encountered an error. Please verify the template format and try again.
+                  </p>
+                  <div className="flex gap-4 justify-center mt-6">
+                    <button onClick={() => setBulkStatus('idle')} className="px-6 py-2 bg-[#f0883e] hover:bg-[#ff9c5a] text-black text-[10px] font-black uppercase tracking-widest rounded-lg transition-all">
+                      Try Again
+                    </button>
+                    <button onClick={resetBulkModal} className="px-6 py-2 bg-bg-active text-white border border-border-main text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#30363d] transition-all">
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

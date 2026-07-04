@@ -179,20 +179,40 @@ const processExcelRows = async (buffer) => {
 
     let errorMessage = null;
 
-    let formattedDate = new Date();
-    if (paymentDateVal instanceof Date) {
-      formattedDate = paymentDateVal;
-    } else if (typeof paymentDateVal === 'string') {
-      const parsed = new Date(paymentDateVal);
-      if (!isNaN(parsed.getTime())) formattedDate = parsed;
+    let formattedDate = null;
+    let rawDateVal = paymentDateVal;
+    if (paymentDateVal && typeof paymentDateVal === 'object' && 'result' in paymentDateVal) {
+      rawDateVal = paymentDateVal.result;
     }
-    const uploadedDateStr = formattedDate.toISOString().split('T')[0];
 
-    const matchedLoan = allLoans.find(l =>
+    if (rawDateVal instanceof Date) {
+      formattedDate = rawDateVal;
+    } else if (rawDateVal !== null && rawDateVal !== undefined && rawDateVal !== '') {
+      const dateStr = rawDateVal.toString().trim();
+      const dmyMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmyMatch) {
+        const day = parseInt(dmyMatch[1], 10);
+        const month = parseInt(dmyMatch[2], 10) - 1;
+        const year = parseInt(dmyMatch[3], 10);
+        const parsed = new Date(year, month, day);
+        if (!isNaN(parsed.getTime())) formattedDate = parsed;
+      } else {
+        const parsed = new Date(dateStr);
+        if (!isNaN(parsed.getTime())) formattedDate = parsed;
+      }
+    }
+    const uploadedDateStr = formattedDate ? formattedDate.toISOString().split('T')[0] : '';
+
+    const matchingLoans = allLoans.filter(l =>
       l.invoiceNumber === invoiceNumber ||
       l.invoiceData?.invoiceNumber === invoiceNumber ||
       l._id.toString() === invoiceNumber
     );
+
+    let matchedLoan = null;
+    if (matchingLoans.length > 0) {
+      matchedLoan = matchingLoans.find(l => (l.schedule || []).some(s => s.status !== 'Paid')) || matchingLoans[0];
+    }
 
     let firstPendingEmi = null;
 
@@ -208,6 +228,7 @@ const processExcelRows = async (buffer) => {
 
     if (!errorMessage) {
       if (!paymentDateVal) errorMessage = 'Payment Date is mandatory.';
+      else if (!formattedDate) errorMessage = 'Invalid Payment Date format (use DD/MM/YYYY or YYYY-MM-DD).';
       else if (paidAmount <= 0) errorMessage = 'Paid Amount must be greater than zero.';
       else if (!transactionId) errorMessage = 'Transaction ID is mandatory.';
     }

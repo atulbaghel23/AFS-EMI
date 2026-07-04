@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { state } from '../state';
 import { Search, Download, FileText, AlertCircle, CheckCircle2, Truck, Calendar, Hash } from 'lucide-react';
 
 const InvoiceSearch = () => {
@@ -57,7 +58,7 @@ const InvoiceSearch = () => {
 
           // Store data locally
           try {
-            await fetch('https://afs-emi.vercel.app/api/dispatch', {
+            await fetch(`${state.apiUrl}/dispatch`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

@@ -1,11 +1,33 @@
 import puppeteer from 'puppeteer';
 
-export const generateReceiptPDF = async (loan, installment) => {
-  const browser = await puppeteer.launch({
+const launchBrowser = async () => {
+  const options = {
     headless: true,
-    channel: 'chrome',
     args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  };
+
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    options.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+
+  try {
+    return await puppeteer.launch(options);
+  } catch (err) {
+    console.warn("Puppeteer launch failed, trying with channel 'chrome'...", err.message);
+    try {
+      return await puppeteer.launch({
+        ...options,
+        channel: 'chrome'
+      });
+    } catch (fallbackErr) {
+      console.error("Puppeteer fallback launch also failed:", fallbackErr);
+      throw fallbackErr;
+    }
+  }
+};
+
+export const generateReceiptPDF = async (loan, installment) => {
+  const browser = await launchBrowser();
   const page = await browser.newPage();
 
   const formatINR = (amount) => {
@@ -169,11 +191,7 @@ export const generateReceiptPDF = async (loan, installment) => {
 };
 
 export const generateAgreementPDF = async (loan) => {
-  const browser = await puppeteer.launch({
-    headless: true,
-    channel: 'chrome',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  const browser = await launchBrowser();
   const page = await browser.newPage();
 
   const formatINR = (amount) => {

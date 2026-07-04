@@ -1,0 +1,10 @@
+{
+  "ignore": [
+    "frontend/*",
+    "scratch/*",
+    "*.log"
+  ],
+  "watch": [
+    "backend"
+  ]
+}

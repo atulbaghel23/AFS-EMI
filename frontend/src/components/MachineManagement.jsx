@@ -40,6 +40,7 @@ const MachineManagement = () => {
   const [categoryFilter, setCategoryFilter] = usePersistentState('machine_category', 'All Categories');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [activePartition, setActivePartition] = useState('All');
   const globalConfig = systemConfig?.machineColumns || localColConfig;
 
   const fetchServerMachines = async () => {
@@ -163,12 +164,20 @@ const MachineManagement = () => {
 
     myContracts.forEach(c => {
        (c.machines || []).forEach(mId => {
-          const masterMachine = machines.find(m => m._id?.toString() === mId.toString());
+          console.log("FMC Contract machine ID:", mId, "type:", typeof mId);
+          const masterMachine = machines.find(m => {
+             const isMatch = m._id?.toString() === mId.toString();
+             if (isMatch) console.log("FMC Match SUCCESS:", m._id, m.name);
+             return isMatch;
+          });
           if (masterMachine) {
              baseMachines.push({ ...masterMachine, _assetId: c._id + '_' + masterMachine._id, _fmc: c });
+          } else {
+             console.log("FMC Match FAILED for machine ID:", mId, "against catalog of size:", machines.length);
           }
        });
     });
+    console.log("DEBUG: Customer FMC contracts:", myContracts, "baseMachines:", baseMachines, "machines catalog:", machines);
   }
 
   const systemCategories = Array.isArray(state.data.categories)
@@ -180,9 +189,25 @@ const MachineManagement = () => {
     ...baseMachines.map(m => m.category || 'Uncategorized')
   ])];
 
+  // Filter by Partition Tab (EMI, Rental, FMC)
+  const partitionedMachines = baseMachines.filter(m => {
+    if (!isCustomer) return true;
+    if (activePartition === 'All') return true;
+    if (activePartition === 'EMI') {
+      return m._loan && m._loan.financingType !== 'Rental';
+    }
+    if (activePartition === 'Rental') {
+      return m._loan && m._loan.financingType === 'Rental';
+    }
+    if (activePartition === 'FMC') {
+      return !!m._fmc;
+    }
+    return true;
+  });
+
   // Pagination Logic
   const safeSearch = searchTerm || '';
-  const filteredMachines = baseMachines.filter(m => {
+  const filteredMachines = partitionedMachines.filter(m => {
     const matchesSearch = m.name?.toLowerCase().includes(safeSearch.toLowerCase()) ||
       m.model?.toLowerCase().includes(safeSearch.toLowerCase()) ||
       m.category?.toLowerCase().includes(safeSearch.toLowerCase());
@@ -301,7 +326,37 @@ const MachineManagement = () => {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-bg-card/50 border border-border-main rounded-2xl">
+      {isCustomer && (
+        <div className="flex border-b border-border-main pb-px gap-6 flex-shrink-0 mb-2">
+          {[
+            { id: 'All', label: 'All Assets' },
+            { id: 'EMI', label: 'EMI Machines' },
+            { id: 'Rental', label: 'Rental Machines' },
+            { id: 'FMC', label: 'FMC Machines' }
+          ].map(tab => {
+            const isActive = activePartition === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActivePartition(tab.id);
+                  setCurrentPage(1);
+                }}
+                className={`pb-3 text-xs font-black uppercase tracking-wider transition-all relative ${
+                  isActive ? 'text-[#f0883e]' : 'text-text-dim hover:text-text-main'
+                }`}
+              >
+                {tab.label}
+                {isActive && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f0883e] rounded-full animate-fade-in" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-bg-card/50 border border-border-main rounded-2xl">
           <div className="w-full sm:w-64 relative">
             <select
               value={categoryFilter}
@@ -335,7 +390,7 @@ const MachineManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
               {paginatedData.map(m => (
                 <MachineCard
-                  key={m._id}
+                  key={m._assetId || m._id}
                   machine={m}
                   user={user}
                   onEdit={() => handleEditMachine(m)}
@@ -377,7 +432,7 @@ const MachineManagement = () => {
                     </td>
                   </tr>
                 ) : paginatedData.map(m => (
-                  <tr key={m._id} className="hover:bg-bg-active transition-all group cursor-pointer" onClick={() => setDetailMachine(m)}>
+                  <tr key={m._assetId || m._id} className="hover:bg-bg-active transition-all group cursor-pointer" onClick={() => setDetailMachine(m)}>
                     {localColConfig.identity && (
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
@@ -450,7 +505,9 @@ const MachineManagement = () => {
                           return (
                             <div className="flex flex-col gap-1 text-[8px] font-mono font-bold text-text-dim uppercase tracking-wider">
                               {machineLoan ? (
-                                <div className="text-[#3fb950] mb-0.5">FINANCED ASSET</div>
+                                <div className={machineLoan.financingType === 'Rental' ? "text-[#58a6ff] mb-0.5" : "text-[#3fb950] mb-0.5"}>
+                                  {machineLoan.financingType === 'Rental' ? "RENTAL ASSET" : "FINANCED ASSET"}
+                                </div>
                               ) : fmcContract ? (
                                 <div className="text-[#58a6ff] mb-0.5">FMC CONTRACT</div>
                               ) : null}
@@ -600,7 +657,9 @@ const MachineManagement = () => {
                   <div className="flex flex-col gap-1 text-[8px] font-mono font-bold text-text-dim uppercase tracking-wider">
                     {machineLoan ? (
                       <div className="flex justify-between mb-1 border-b border-border-main pb-1">
-                        <span className="text-[#3fb950]">FINANCED ASSET</span>
+                        <span className={machineLoan.financingType === 'Rental' ? "text-[#58a6ff]" : "text-[#3fb950]"}>
+                          {machineLoan.financingType === 'Rental' ? "RENTAL ASSET" : "FINANCED ASSET"}
+                        </span>
                         <span className="text-[#f0883e]">₹{((machineLoan.emi || 0)).toLocaleString()}/m</span>
                       </div>
                     ) : fmcContract ? (

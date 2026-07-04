@@ -34,7 +34,7 @@ const NotificationSettings = () => {
 
   const fetchTemplates = async () => {
     try {
-      const res = await fetch('https://afs-emi.vercel.app/api/notifications/templates');
+      const res = await fetch(`${state.apiUrl}/notifications/templates`);
       const data = await res.json();
       setTemplates(data);
       if (data.length > 0 && !selectedTemplate) setSelectedTemplate(data[0]);
@@ -45,7 +45,7 @@ const NotificationSettings = () => {
 
   const fetchLogs = async () => {
     try {
-      const res = await fetch('https://afs-emi.vercel.app/api/notifications/logs');
+      const res = await fetch(`${state.apiUrl}/notifications/logs`);
       const data = await res.json();
       setLogs(data);
     } catch (err) {
@@ -73,7 +73,7 @@ const NotificationSettings = () => {
 
     setIsSaving(true);
     try {
-      const res = await fetch('https://afs-emi.vercel.app/api/notifications/test-mail', {
+      const res = await fetch(`${state.apiUrl}/notifications/test-mail`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(localSmtp)
@@ -107,7 +107,7 @@ const NotificationSettings = () => {
     if (!selectedTemplate) return;
     setIsSaving(true);
     try {
-      const res = await fetch('https://afs-emi.vercel.app/api/notifications/templates', {
+      const res = await fetch(`${state.apiUrl}/notifications/templates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(selectedTemplate)

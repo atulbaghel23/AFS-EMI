@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const loanSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
+  financingType: { type: String, default: 'EMI' },
   machineName: String,
   model: String,
   invoiceNumber: String,

@@ -30,6 +30,7 @@ export const getLoans = async (req, res) => {
         model: loan.model,
         serialNumber: loan.serialNumber,
         invoiceData: loan.invoiceData,
+        financingType: loan.financingType || 'EMI',
         status: loan.status,
         approvalStatus: loan.approvalStatus,
         machineDetails: matchedMachine ? {
