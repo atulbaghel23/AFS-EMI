@@ -403,6 +403,7 @@ export const getLoanDetails = async (req, res) => {
       ]
     }).lean();
 
+    const fullHost = req.protocol + '://' + req.get('host');
     const schedule = (updatedLoan.schedule || []).map((s, index) => {
       const instNum = s.installment || s.installmentNo || (index + 1);
       return {
@@ -419,7 +420,7 @@ export const getLoanDetails = async (req, res) => {
         paidDate: s.paidDate || null,
         balance: s.balance || 0,
         status: s.status || 'Pending',
-        receiptUrl: s.status === 'Paid' ? `/api/app/loans/${updatedLoan._id}/receipt/${instNum}` : null
+        receiptUrl: s.status === 'Paid' ? `${fullHost}/api/app/loans/${updatedLoan._id}/receipt/${instNum}` : null
       };
     });
 
