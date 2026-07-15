@@ -191,10 +191,7 @@ export const generateReceiptPDF = async (loan, installment) => {
   return pdf;
 };
 
-export const generateAgreementPDF = async (loan) => {
-  const browser = await launchBrowser();
-  const page = await browser.newPage();
-
+export const generateAgreementHTML = (loan, isForBrowserPrint = false) => {
   const formatINR = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -303,7 +300,24 @@ export const generateAgreementPDF = async (loan) => {
     downPayment: loan.downPayment || 0
   });
 
-  const html = `
+  const printStylesAndMenu = isForBrowserPrint ? `
+    <div class="no-print">
+      <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+      <button class="btn-close" onclick="window.close()">Close Window</button>
+    </div>
+  ` : '';
+
+  const printScript = isForBrowserPrint ? `
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          window.print();
+        }, 500);
+      });
+    </script>
+  ` : '';
+
+  return `
     <html>
     <head>
       <meta charset="utf-8">
@@ -410,9 +424,79 @@ export const generateAgreementPDF = async (loan) => {
           font-weight: bold;
           font-size: 13px;
         }
+        
+        /* Premium Floating Navigation Menu for Browser Printing */
+        .no-print {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 9999;
+          background: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(8px);
+          padding: 12px 24px;
+          border-radius: 16px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          transition: all 0.3s ease;
+        }
+        .no-print button {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          padding: 10px 20px;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: none;
+        }
+        .btn-print {
+          background: #f0883e;
+          color: white;
+        }
+        .btn-print:hover {
+          background: #e0772d;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(240, 136, 62, 0.3);
+        }
+        .btn-close {
+          background: transparent;
+          color: #e2e8f0;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        .btn-close:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+        }
+        
+        @page {
+          size: A4;
+          margin: 65px 50px 65px 50px;
+        }
+        
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          body {
+            background-color: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .page {
+            page-break-after: always;
+            page-break-inside: avoid;
+            margin: 0;
+            padding: 0;
+          }
+        }
       </style>
     </head>
     <body>
+      ${printStylesAndMenu}
+
       ${agreementPages.map(pageHtml => `
         <div class="page">
           ${pageHtml}
@@ -524,9 +608,18 @@ export const generateAgreementPDF = async (loan) => {
           </div>
         </div>
       </div>
+
+      ${printScript}
     </body>
     </html>
   `;
+};
+
+export const generateAgreementPDF = async (loan) => {
+  const browser = await launchBrowser();
+  const page = await browser.newPage();
+
+  const html = generateAgreementHTML(loan, false);
 
   await page.setContent(html, { waitUntil: 'networkidle0' });
   const pageHeights = await page.evaluate(() => {
@@ -553,7 +646,7 @@ export const generateAgreementPDF = async (loan) => {
     footerTemplate: `
       <div style="font-size: 8px; width: 100%; text-align: center; font-family: 'Inter', sans-serif; color: #64748b; padding: 0 50px; box-sizing: border-box; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 8px; margin-bottom: 20px;">
         <span style="font-weight: bold;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
-        <span>(Agreement No.- LIPL/HP/26-27/${loan._id.toString().slice(-4).toUpperCase()})</span>
+        <span>(Agreement No.- LIPL/HP/26-27/\${loan._id.toString().slice(-4).toUpperCase()})</span>
       </div>
     `
   });

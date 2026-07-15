@@ -85,6 +85,7 @@ const FinancingFormModal = ({ loan, onClose }) => {
 
   const handleDownload = async () => {
     try {
+      showNotification('Generating agreement...', 'info');
       const res = await fetch(`${state.apiUrl}/loans/${loan._id}/agreement/download`, {
         headers: { Authorization: `Bearer ${state.token}` }
       });
@@ -95,11 +96,36 @@ const FinancingFormModal = ({ loan, onClose }) => {
         a.href = url;
         a.download = `Agreement_${loan._id}.pdf`;
         a.click();
+        showNotification('Agreement downloaded successfully', 'success');
       } else {
-        showNotification('Failed to download agreement', 'error');
+        await fallbackToHtmlPrint();
       }
     } catch (e) {
-      showNotification('Download failed', 'error');
+      await fallbackToHtmlPrint();
+    }
+  };
+
+  const fallbackToHtmlPrint = async () => {
+    try {
+      showNotification('Direct PDF download failed. Opening printable version...', 'info');
+      const res = await fetch(`${state.apiUrl}/loans/${loan._id}/agreement/html`, {
+        headers: { Authorization: `Bearer ${state.token}` }
+      });
+      if (res.ok) {
+        const html = await res.text();
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.open();
+          printWindow.document.write(html);
+          printWindow.document.close();
+        } else {
+          showNotification('Pop-up blocked! Please allow pop-ups to open the printable agreement.', 'warning');
+        }
+      } else {
+        showNotification('Failed to generate printable agreement', 'error');
+      }
+    } catch (err) {
+      showNotification('Failed to generate printable agreement', 'error');
     }
   };
 

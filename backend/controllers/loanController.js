@@ -1,8 +1,7 @@
 import Loan from '../models/Loan.js';
 import ApprovalFlow from '../models/ApprovalFlow.js';
 import Machine from '../models/Machine.js';
-import { generateReceiptPDF } from '../services/pdfService.js';
-import { generateAgreementPDF } from '../services/pdfService.js';
+import { generateReceiptPDF, generateAgreementPDF, generateAgreementHTML } from '../services/pdfService.js';
 import { generateExcelReport, generatePPTReport, generatePDFReport } from '../services/reportService.js';
 
 import { calculateOverdueInterest } from '../utils/interestCalculator.js';
@@ -142,6 +141,19 @@ export const downloadAgreement = async (req, res) => {
     res.send(pdf);
   } catch (error) {
     res.status(500).json({ message: 'Error generating agreement PDF' });
+  }
+};
+
+export const getAgreementHTML = async (req, res) => {
+  try {
+    const loan = await Loan.findById(req.params.id).populate('customerId');
+    if (!loan) return res.status(404).json({ message: 'Loan not found' });
+
+    const html = generateAgreementHTML(loan, true);
+    res.contentType("text/html");
+    res.send(html);
+  } catch (error) {
+    res.status(500).json({ message: 'Error generating agreement HTML' });
   }
 };
 
